@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BookOpen, CheckCircle, RotateCcw, Trophy, ChevronRight, ChevronLeft, MapPin, Globe, RefreshCw, List, Layers, ArrowLeft, History, Brain } from 'lucide-react';
+import { BookOpen, CheckCircle, XCircle, Circle, RotateCcw, Trophy, ChevronRight, ChevronLeft, MapPin, Globe, RefreshCw, List, Layers, ArrowLeft, History, Brain } from 'lucide-react';
 
 // --- 教科タイプ ---
 type Subject = 'history' | 'ethics';
@@ -459,12 +459,12 @@ const getUniqueCategories = (data: typeof historyData, subject: Subject) => {
   });
 };
 
-const getStorageKey = (subject: Subject) => `kioku-${subject}-mastered-ids`;
+const getStorageKey = (subject: Subject, type: 'mastered' | 'failed') => `kioku-${subject}-${type}-ids`;
 const SUBJECT_STORAGE_KEY = 'kioku-selected-subject';
 
-const loadMasteredIds = (subject: Subject): number[] => {
+const loadIds = (subject: Subject, type: 'mastered' | 'failed'): number[] => {
   try {
-    const saved = localStorage.getItem(getStorageKey(subject));
+    const saved = localStorage.getItem(getStorageKey(subject, type));
     if (saved) return JSON.parse(saved);
   } catch (e) {
     console.error('Failed to load saved progress', e);
@@ -482,7 +482,7 @@ const loadSelectedSubject = (): Subject | null => {
   return null;
 };
 
-type StatusFilter = 'all' | 'unlearned' | 'learned';
+type StatusFilter = 'all' | 'unseen' | 'failed' | 'learned';
 
 // --- 教科選択画面 ---
 function SubjectSelector({ onSelect }: { onSelect: (subject: Subject) => void }) {
@@ -534,51 +534,81 @@ function SubjectSelector({ onSelect }: { onSelect: (subject: Subject) => void })
 }
 
 export default function KiokuApp() {
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(loadSelectedSubject);
-  const [questions, setQuestions] = useState(historyData);
+  const initialSubject = loadSelectedSubject();
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(initialSubject);
+  const [questions, setQuestions] = useState(() =>
+    initialSubject === 'history' ? historyData : initialSubject === 'ethics' ? ethicsData : historyData
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [masteredIds, setMasteredIds] = useState<number[]>([]);
+  const [masteredIds, setMasteredIds] = useState<number[]>(() =>
+    initialSubject ? loadIds(initialSubject, 'mastered') : []
+  );
+  const [failedIds, setFailedIds] = useState<number[]>(() =>
+    initialSubject ? loadIds(initialSubject, 'failed') : []
+  );
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [showList, setShowList] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(!!initialSubject);
 
   const rawData = selectedSubject === 'history' ? historyData : ethicsData;
 
   // 教科変更時にデータを更新
   useEffect(() => {
-    if (selectedSubject) {
+    if (selectedSubject && !isInitialized) {
+      // 新しく教科が選ばれた場合
       const newData = selectedSubject === 'history' ? historyData : ethicsData;
       setQuestions(newData);
-      setMasteredIds(loadMasteredIds(selectedSubject));
+      setMasteredIds(loadIds(selectedSubject, 'mastered'));
+      setFailedIds(loadIds(selectedSubject, 'failed'));
       setCurrentIndex(0);
       setFilterCategory('All');
       setStatusFilter('all');
       setIsFlipped(false);
       localStorage.setItem(SUBJECT_STORAGE_KEY, selectedSubject);
+      setIsInitialized(true);
     }
-  }, [selectedSubject]);
+  }, [selectedSubject, isInitialized]);
+
+  // 教科切り替え時のリセット
+  const handleChangeSubjectInternal = () => {
+    setSelectedSubject(null);
+    setIsInitialized(false);
+    localStorage.removeItem(SUBJECT_STORAGE_KEY);
+  };
 
   useEffect(() => {
-    if (selectedSubject) {
-      localStorage.setItem(getStorageKey(selectedSubject), JSON.stringify(masteredIds));
+    if (selectedSubject && isInitialized) {
+      localStorage.setItem(getStorageKey(selectedSubject, 'mastered'), JSON.stringify(masteredIds));
     }
-  }, [masteredIds, selectedSubject]);
+  }, [masteredIds, selectedSubject, isInitialized]);
+
+  useEffect(() => {
+    if (selectedSubject && isInitialized) {
+      localStorage.setItem(getStorageKey(selectedSubject, 'failed'), JSON.stringify(failedIds));
+    }
+  }, [failedIds, selectedSubject, isInitialized]);
 
   const filteredQuestions = useMemo(() => {
     let filtered = questions;
     if (filterCategory !== 'All') {
       filtered = filtered.filter(q => q.category === filterCategory);
     }
-    if (statusFilter === 'unlearned') {
-      filtered = filtered.filter(q => !masteredIds.includes(q.id));
+    if (statusFilter === 'unseen') {
+      // 未学習: まだ見ていない問題
+      filtered = filtered.filter(q => !masteredIds.includes(q.id) && !failedIds.includes(q.id));
+    } else if (statusFilter === 'failed') {
+      // わからなかった問題
+      filtered = filtered.filter(q => failedIds.includes(q.id));
     } else if (statusFilter === 'learned') {
+      // 習得済み
       filtered = filtered.filter(q => masteredIds.includes(q.id));
     }
     return filtered;
-  }, [questions, filterCategory, statusFilter, masteredIds]);
+  }, [questions, filterCategory, statusFilter, masteredIds, failedIds]);
 
   // currentIndexが範囲外になったら調整
   useEffect(() => {
@@ -591,10 +621,7 @@ export default function KiokuApp() {
     setSelectedSubject(subject);
   };
 
-  const handleChangeSubject = () => {
-    setSelectedSubject(null);
-    localStorage.removeItem(SUBJECT_STORAGE_KEY);
-  };
+  const handleChangeSubject = handleChangeSubjectInternal;
 
   // 教科選択画面を表示
   if (!selectedSubject) {
@@ -603,7 +630,8 @@ export default function KiokuApp() {
 
   const currentQuestion = filteredQuestions[currentIndex];
   const progressPercentage = Math.round((masteredIds.length / rawData.length) * 100);
-  const unlearnedCount = rawData.length - masteredIds.length;
+  const unseenCount = rawData.length - masteredIds.length - failedIds.length;
+  const failedCount = failedIds.length;
   const learnedCount = masteredIds.length;
 
   const handleNext = () => {
@@ -622,66 +650,93 @@ export default function KiokuApp() {
     }, 150);
   };
 
-  const toggleMastered = (id: number) => {
-    setMasteredIds(prev => prev.includes(id) ? prev.filter(mid => mid !== id) : [...prev, id]);
+  // 一覧用: ステータスを循環切り替え (未学習 → わからない → 習得済み → 未学習)
+  const cycleStatus = (id: number) => {
+    const isMastered = masteredIds.includes(id);
+    const isFailed = failedIds.includes(id);
+
+    if (isMastered) {
+      // 習得済み → 未学習
+      setMasteredIds(prev => prev.filter(mid => mid !== id));
+    } else if (isFailed) {
+      // わからない → 習得済み
+      setFailedIds(prev => prev.filter(fid => fid !== id));
+      setMasteredIds(prev => [...prev, id]);
+    } else {
+      // 未学習 → わからない
+      setFailedIds(prev => [...prev, id]);
+    }
   };
 
   const markAsLearned = () => {
     if (!currentQuestion) return;
 
-    // 答えが表示されていない場合、先に表示してから次へ
-    if (!isFlipped) {
-      setIsFlipped(true);
-      setTimeout(() => {
-        if (!masteredIds.includes(currentQuestion.id)) {
-          setMasteredIds(prev => [...prev, currentQuestion.id]);
-        }
-        handleNext();
-      }, 600);
-    } else {
+    const doMark = () => {
+      // 習得済みに追加、わからないから削除
       if (!masteredIds.includes(currentQuestion.id)) {
         setMasteredIds(prev => [...prev, currentQuestion.id]);
       }
+      setFailedIds(prev => prev.filter(fid => fid !== currentQuestion.id));
       handleNext();
-    }
-  };
-
-  const markAsUnlearned = () => {
-    if (!currentQuestion) return;
+    };
 
     // 答えが表示されていない場合、先に表示してから次へ
     if (!isFlipped) {
       setIsFlipped(true);
-      setTimeout(() => {
-        if (masteredIds.includes(currentQuestion.id)) {
-          setMasteredIds(prev => prev.filter(mid => mid !== currentQuestion.id));
-        }
-        handleNext();
-      }, 600);
+      setTimeout(doMark, 600);
     } else {
-      if (masteredIds.includes(currentQuestion.id)) {
-        setMasteredIds(prev => prev.filter(mid => mid !== currentQuestion.id));
+      doMark();
+    }
+  };
+
+  const markAsFailed = () => {
+    if (!currentQuestion) return;
+
+    const doMark = () => {
+      // わからないに追加、習得済みから削除
+      if (!failedIds.includes(currentQuestion.id)) {
+        setFailedIds(prev => [...prev, currentQuestion.id]);
       }
+      setMasteredIds(prev => prev.filter(mid => mid !== currentQuestion.id));
       handleNext();
+    };
+
+    // 答えが表示されていない場合、先に表示してから次へ
+    if (!isFlipped) {
+      setIsFlipped(true);
+      setTimeout(doMark, 600);
+    } else {
+      doMark();
     }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientX);
+    const touchX = e.touches[0].clientX;
+    const screenWidth = window.innerWidth;
+    // 画面端50px以内からのスワイプはブラウザジェスチャー用に無視
+    if (touchX < 50 || touchX > screenWidth - 50) {
+      setTouchStart(null);
+      return;
+    }
+    setTouchStart(touchX);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStart === null) return;
     const diff = e.touches[0].clientX - touchStart;
+    // 水平方向に動き始めたらブラウザのデフォルト動作を防ぐ
+    if (Math.abs(diff) > 10) {
+      e.preventDefault();
+    }
     setSwipeOffset(Math.max(-100, Math.min(100, diff)));
   };
 
   const handleTouchEnd = () => {
-    if (Math.abs(swipeOffset) > 60) {
+    if (touchStart !== null && Math.abs(swipeOffset) > 60) {
       if (swipeOffset > 0) {
         markAsLearned();
       } else {
-        markAsUnlearned();
+        markAsFailed();
       }
     }
     setTouchStart(null);
@@ -703,6 +758,15 @@ export default function KiokuApp() {
 
   // 完了画面（問題がない場合）
   if (filteredQuestions.length === 0 || !currentQuestion) {
+    const getMessage = () => {
+      switch (statusFilter) {
+        case 'unseen': return { title: 'Complete!', desc: '全ての問題を学習しました！' };
+        case 'failed': return { title: 'Great!', desc: '復習問題を全てクリアしました！' };
+        case 'learned': return { title: 'No Questions', desc: '習得済みの問題はまだありません。' };
+        default: return { title: 'No Questions', desc: 'このカテゴリの問題はありません。' };
+      }
+    };
+    const msg = getMessage();
     return (
       <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
         <div className="text-center p-6 bg-zinc-800 rounded-xl border border-zinc-700 max-w-sm w-full">
@@ -711,11 +775,8 @@ export default function KiokuApp() {
           }`}>
             <Trophy className="w-7 h-7 text-white" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">
-            {statusFilter === 'unlearned' ? 'Complete!' : 'No Questions'}
-          </h2>
-          <p className="text-sm text-zinc-400 mb-5">
-            {statusFilter === 'unlearned' ? '全ての問題を覚えました！' : 'このカテゴリの問題はありません。'}
+          <h2 className="text-xl font-bold text-white mb-2">{msg.title}</h2>
+          <p className="text-sm text-zinc-400 mb-5">{msg.desc}
           </p>
           <div className="flex gap-2 justify-center">
             <button
@@ -803,24 +864,27 @@ export default function KiokuApp() {
             <div className="flex bg-zinc-700/50 rounded-lg p-0.5">
               <button
                 onClick={() => { setStatusFilter('all'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'all' ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'
-                  }`}
+                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'all' ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'}`}
               >
                 全て
               </button>
               <button
-                onClick={() => { setStatusFilter('unlearned'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'unlearned' ? 'bg-amber-500 text-white' : 'text-zinc-400 hover:text-white'
-                  }`}
+                onClick={() => { setStatusFilter('unseen'); setCurrentIndex(0); setIsFlipped(false); }}
+                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'unseen' ? 'bg-zinc-500 text-white' : 'text-zinc-400 hover:text-white'}`}
               >
-                未習得 ({unlearnedCount})
+                未学習 ({unseenCount})
+              </button>
+              <button
+                onClick={() => { setStatusFilter('failed'); setCurrentIndex(0); setIsFlipped(false); }}
+                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'failed' ? 'bg-rose-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+              >
+                復習 ({failedCount})
               </button>
               <button
                 onClick={() => { setStatusFilter('learned'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'learned' ? 'bg-emerald-500 text-white' : 'text-zinc-400 hover:text-white'
-                  }`}
+                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'learned' ? 'bg-emerald-500 text-white' : 'text-zinc-400 hover:text-white'}`}
               >
-                習得済 ({learnedCount})
+                習得 ({learnedCount})
               </button>
             </div>
 
@@ -833,7 +897,7 @@ export default function KiokuApp() {
             </button>
 
             <button
-              onClick={() => { if (confirm('学習記録をリセットしますか？')) setMasteredIds([]); }}
+              onClick={() => { if (confirm('学習記録をリセットしますか？')) { setMasteredIds([]); setFailedIds([]); } }}
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-400 text-xs font-medium hover:bg-red-500/20 hover:text-red-400 transition-colors"
             >
               <RefreshCw size={12} />
@@ -857,37 +921,49 @@ export default function KiokuApp() {
       <main className="max-w-5xl mx-auto px-3 py-4">
         {showList ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-            {filteredQuestions.map((q) => (
-              <div
-                key={q.id}
-                className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${
-                  masteredIds.includes(q.id)
-                    ? (selectedSubject === 'history' ? 'border-amber-500/40' : 'border-purple-500/40')
-                    : 'border-zinc-700/50 hover:border-zinc-600'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] font-medium text-zinc-500 bg-zinc-700/50 px-1.5 py-0.5 rounded">
-                    {q.category}
-                  </span>
-                  <button onClick={() => toggleMastered(q.id)} className="p-0.5">
-                    {masteredIds.includes(q.id) ? (
-                      <CheckCircle className={`w-4 h-4 ${selectedSubject === 'history' ? 'text-amber-400' : 'text-purple-400'}`} />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border border-zinc-600" />
-                    )}
-                  </button>
+            {filteredQuestions.map((q) => {
+              const isMastered = masteredIds.includes(q.id);
+              const isFailed = failedIds.includes(q.id);
+              return (
+                <div
+                  key={q.id}
+                  className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${
+                    isMastered
+                      ? 'border-emerald-500/40'
+                      : isFailed
+                        ? 'border-rose-500/40'
+                        : 'border-zinc-700/50 hover:border-zinc-600'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] font-medium text-zinc-500 bg-zinc-700/50 px-1.5 py-0.5 rounded">
+                      {q.category}
+                    </span>
+                    <button onClick={() => cycleStatus(q.id)} className="p-0.5" title="クリックでステータス変更">
+                      {isMastered ? (
+                        <CheckCircle className="w-4 h-4 text-emerald-400" />
+                      ) : isFailed ? (
+                        <XCircle className="w-4 h-4 text-rose-400" />
+                      ) : (
+                        <Circle className="w-4 h-4 text-zinc-600" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-xs text-zinc-300 mb-2.5 leading-relaxed">{q.question}</p>
+                  <div className={`px-2.5 py-1.5 rounded border ${
+                    isMastered
+                      ? 'bg-emerald-500/10 border-emerald-500/20'
+                      : isFailed
+                        ? 'bg-rose-500/10 border-rose-500/20'
+                        : 'bg-zinc-700/30 border-zinc-600/30'
+                  }`}>
+                    <span className={`font-medium text-xs ${
+                      isMastered ? 'text-emerald-300' : isFailed ? 'text-rose-300' : 'text-zinc-300'
+                    }`}>{q.answer}</span>
+                  </div>
                 </div>
-                <p className="text-xs text-zinc-300 mb-2.5 leading-relaxed">{q.question}</p>
-                <div className={`px-2.5 py-1.5 rounded border ${
-                  selectedSubject === 'history'
-                    ? 'bg-amber-500/10 border-amber-500/20'
-                    : 'bg-purple-500/10 border-purple-500/20'
-                }`}>
-                  <span className={`font-medium text-xs ${selectedSubject === 'history' ? 'text-amber-300' : 'text-purple-300'}`}>{q.answer}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-col items-center pt-4 md:pt-8">
@@ -897,8 +973,8 @@ export default function KiokuApp() {
 
             {/* スワイプヒント */}
             <div className="flex justify-between w-full max-w-lg px-2 mb-2">
-              <span className={`text-[10px] transition-opacity ${swipeOffset < -20 ? 'text-amber-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>← 覚えてない</span>
-              <span className={`text-[10px] transition-opacity ${swipeOffset > 20 ? 'text-emerald-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>覚えた →</span>
+              <span className={`text-[10px] transition-opacity ${swipeOffset < -20 ? 'text-rose-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>← わからない</span>
+              <span className={`text-[10px] transition-opacity ${swipeOffset > 20 ? 'text-emerald-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>わかった →</span>
             </div>
 
             <div
@@ -909,7 +985,8 @@ export default function KiokuApp() {
               onTouchEnd={handleTouchEnd}
               style={{
                 transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)`,
-                transition: touchStart ? 'none' : 'transform 0.2s ease-out'
+                transition: touchStart ? 'none' : 'transform 0.2s ease-out',
+                touchAction: 'pan-y'
               }}
             >
               <div className={`bg-zinc-800 rounded-xl border overflow-hidden transition-colors ${
@@ -921,13 +998,15 @@ export default function KiokuApp() {
                     {currentQuestion.category.includes('世界') && <Globe size={10} className="text-sky-400" />}
                     {currentQuestion.category}
                   </span>
-                  {masteredIds.includes(currentQuestion.id) && (
-                    <span className={`flex items-center gap-1 text-[10px] font-medium ${
-                      selectedSubject === 'history' ? 'text-amber-400' : 'text-purple-400'
-                    }`}>
+                  {masteredIds.includes(currentQuestion.id) ? (
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-400">
                       <CheckCircle size={10} /> 習得済み
                     </span>
-                  )}
+                  ) : failedIds.includes(currentQuestion.id) ? (
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-rose-400">
+                      <XCircle size={10} /> 復習
+                    </span>
+                  ) : null}
                 </div>
 
                 <div className="p-5 min-h-[180px] flex flex-col justify-center">
@@ -969,19 +1048,17 @@ export default function KiokuApp() {
             {/* アクションボタン - 常に表示 */}
             <div className="flex gap-3 mt-4 w-full max-w-lg">
               <button
-                onClick={markAsUnlearned}
-                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-amber-400 text-xs font-medium hover:bg-zinc-700 transition-colors"
+                onClick={markAsFailed}
+                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-rose-400 text-xs font-medium hover:bg-zinc-700 transition-colors"
               >
                 <ChevronLeft size={14} />
-                覚えてない
+                わからない
               </button>
               <button
                 onClick={markAsLearned}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-white text-xs font-medium transition-colors ${
-                  selectedSubject === 'history' ? 'bg-amber-600 hover:bg-amber-500' : 'bg-purple-600 hover:bg-purple-500'
-                }`}
+                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-500 transition-colors"
               >
-                覚えた
+                わかった
                 <ChevronRight size={14} />
               </button>
             </div>
