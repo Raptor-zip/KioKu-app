@@ -192,6 +192,8 @@ const loadMasteredIds = (): number[] => {
   return [];
 };
 
+type StatusFilter = 'all' | 'unlearned' | 'learned';
+
 export default function HistoryStudyApp() {
   const [questions, setQuestions] = useState(rawData);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -199,7 +201,7 @@ export default function HistoryStudyApp() {
   const [masteredIds, setMasteredIds] = useState<number[]>(loadMasteredIds);
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [showList, setShowList] = useState(false);
-  const [reviewMode, setReviewMode] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(masteredIds));
@@ -210,15 +212,18 @@ export default function HistoryStudyApp() {
     if (filterCategory !== 'All') {
       filtered = filtered.filter(q => q.category === filterCategory);
     }
-    if (reviewMode) {
+    if (statusFilter === 'unlearned') {
       filtered = filtered.filter(q => !masteredIds.includes(q.id));
+    } else if (statusFilter === 'learned') {
+      filtered = filtered.filter(q => masteredIds.includes(q.id));
     }
     return filtered;
-  }, [questions, filterCategory, reviewMode, masteredIds]);
+  }, [questions, filterCategory, statusFilter, masteredIds]);
 
   const currentQuestion = filteredQuestions[currentIndex];
   const progressPercentage = Math.round((masteredIds.length / rawData.length) * 100);
-  const remainingCount = rawData.length - masteredIds.length;
+  const unlearnedCount = rawData.length - masteredIds.length;
+  const learnedCount = masteredIds.length;
 
   const handleNext = () => {
     setIsFlipped(false);
@@ -260,13 +265,13 @@ export default function HistoryStudyApp() {
             <Trophy className="w-7 h-7 text-white" />
           </div>
           <h2 className="text-xl font-bold text-white mb-2">
-            {reviewMode ? 'Complete!' : 'No Questions'}
+            {statusFilter === 'unlearned' ? 'Complete!' : 'No Questions'}
           </h2>
           <p className="text-sm text-zinc-400 mb-5">
-            {reviewMode ? '全ての問題を覚えました！' : 'このカテゴリの問題はありません。'}
+            {statusFilter === 'unlearned' ? '全ての問題を覚えました！' : 'このカテゴリの問題はありません。'}
           </p>
           <button
-            onClick={() => { setFilterCategory('All'); setReviewMode(false); }}
+            onClick={() => { setFilterCategory('All'); setStatusFilter('all'); }}
             className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
           >
             全問題に戻る
@@ -286,7 +291,7 @@ export default function HistoryStudyApp() {
               <div className="w-7 h-7 bg-indigo-500 rounded-lg flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
-              <h1 className="font-semibold text-sm text-white">歴史テスト対策</h1>
+              <h1 className="font-semibold text-sm text-white">Kioku</h1>
             </div>
 
             {/* 進捗 */}
@@ -326,21 +331,40 @@ export default function HistoryStudyApp() {
               </button>
             </div>
 
+            {/* 状態フィルター */}
+            <div className="flex bg-zinc-700/50 rounded-lg p-0.5">
+              <button
+                onClick={() => { setStatusFilter('all'); setCurrentIndex(0); setIsFlipped(false); }}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  statusFilter === 'all' ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                全て
+              </button>
+              <button
+                onClick={() => { setStatusFilter('unlearned'); setCurrentIndex(0); setIsFlipped(false); }}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  statusFilter === 'unlearned' ? 'bg-amber-500 text-white' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                未習得 ({unlearnedCount})
+              </button>
+              <button
+                onClick={() => { setStatusFilter('learned'); setCurrentIndex(0); setIsFlipped(false); }}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  statusFilter === 'learned' ? 'bg-emerald-500 text-white' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                習得済 ({learnedCount})
+              </button>
+            </div>
+
             <button
               onClick={shuffleQuestions}
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-400 text-xs font-medium hover:bg-zinc-700 hover:text-white transition-colors"
             >
               <RotateCcw size={12} />
               <span className="hidden sm:inline">シャッフル</span>
-            </button>
-
-            <button
-              onClick={() => { setReviewMode(!reviewMode); setCurrentIndex(0); setIsFlipped(false); }}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                reviewMode ? 'bg-amber-500/20 text-amber-400' : 'bg-zinc-700/50 text-zinc-400 hover:bg-zinc-700 hover:text-white'
-              }`}
-            >
-              {reviewMode ? `復習中 (${remainingCount})` : '復習'}
             </button>
 
             <button
