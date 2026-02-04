@@ -756,46 +756,7 @@ export default function KiokuApp() {
     setIsFlipped(false);
   };
 
-  // 完了画面（問題がない場合）
-  if (filteredQuestions.length === 0 || !currentQuestion) {
-    const getMessage = () => {
-      switch (statusFilter) {
-        case 'unseen': return { title: 'Complete!', desc: '全ての問題を学習しました！' };
-        case 'failed': return { title: 'Great!', desc: '復習問題を全てクリアしました！' };
-        case 'learned': return { title: 'No Questions', desc: '習得済みの問題はまだありません。' };
-        default: return { title: 'No Questions', desc: 'このカテゴリの問題はありません。' };
-      }
-    };
-    const msg = getMessage();
-    return (
-      <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
-        <div className="text-center p-6 bg-zinc-800 rounded-xl border border-zinc-700 max-w-sm w-full">
-          <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
-            selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'
-          }`}>
-            <Trophy className="w-7 h-7 text-white" />
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">{msg.title}</h2>
-          <p className="text-sm text-zinc-400 mb-5">{msg.desc}
-          </p>
-          <div className="flex gap-2 justify-center">
-            <button
-              onClick={() => { setFilterCategory('All'); setStatusFilter('all'); }}
-              className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
-            >
-              全問題に戻る
-            </button>
-            <button
-              onClick={handleChangeSubject}
-              className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
-            >
-              教科変更
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-zinc-900">
@@ -919,7 +880,42 @@ export default function KiokuApp() {
 
       {/* メインエリア */}
       <main className="max-w-5xl mx-auto px-3 py-4">
-        {showList ? (
+        {(filteredQuestions.length === 0 || !currentQuestion) ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center p-6 bg-zinc-800 rounded-xl border border-zinc-700 max-w-sm w-full">
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'
+                }`}>
+                <Trophy className="w-7 h-7 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">
+                {statusFilter === 'unseen' ? 'Complete!' :
+                  statusFilter === 'failed' ? 'Great!' :
+                    statusFilter === 'learned' ? 'No Questions' :
+                      'No Questions'}
+              </h2>
+              <p className="text-sm text-zinc-400 mb-5">
+                {statusFilter === 'unseen' ? '全ての問題を学習しました！' :
+                  statusFilter === 'failed' ? '復習問題を全てクリアしました！' :
+                    statusFilter === 'learned' ? '習得済みの問題はまだありません。' :
+                      'このカテゴリの問題はありません。'}
+              </p>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={() => { setFilterCategory('All'); setStatusFilter('all'); }}
+                  className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
+                >
+                  全問題に戻る
+                </button>
+                <button
+                  onClick={handleChangeSubject}
+                  className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
+                >
+                  教科変更
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : showList ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
             {filteredQuestions.map((q) => {
               const isMastered = masteredIds.includes(q.id);
@@ -927,13 +923,12 @@ export default function KiokuApp() {
               return (
                 <div
                   key={q.id}
-                  className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${
-                    isMastered
+                  className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${isMastered
                       ? 'border-emerald-500/40'
                       : isFailed
                         ? 'border-rose-500/40'
                         : 'border-zinc-700/50 hover:border-zinc-600'
-                  }`}
+                    }`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-[10px] font-medium text-zinc-500 bg-zinc-700/50 px-1.5 py-0.5 rounded">
@@ -950,16 +945,14 @@ export default function KiokuApp() {
                     </button>
                   </div>
                   <p className="text-xs text-zinc-300 mb-2.5 leading-relaxed">{q.question}</p>
-                  <div className={`px-2.5 py-1.5 rounded border ${
-                    isMastered
+                  <div className={`px-2.5 py-1.5 rounded border ${isMastered
                       ? 'bg-emerald-500/10 border-emerald-500/20'
                       : isFailed
                         ? 'bg-rose-500/10 border-rose-500/20'
                         : 'bg-zinc-700/30 border-zinc-600/30'
-                  }`}>
-                    <span className={`font-medium text-xs ${
-                      isMastered ? 'text-emerald-300' : isFailed ? 'text-rose-300' : 'text-zinc-300'
-                    }`}>{q.answer}</span>
+                    }`}>
+                    <span className={`font-medium text-xs ${isMastered ? 'text-emerald-300' : isFailed ? 'text-rose-300' : 'text-zinc-300'
+                      }`}>{q.answer}</span>
                   </div>
                 </div>
               );
@@ -989,9 +982,8 @@ export default function KiokuApp() {
                 touchAction: 'pan-y'
               }}
             >
-              <div className={`bg-zinc-800 rounded-xl border overflow-hidden transition-colors ${
-                swipeOffset > 30 ? 'border-emerald-500/50' : swipeOffset < -30 ? 'border-amber-500/50' : 'border-zinc-700/50'
-              }`}>
+              <div className={`bg-zinc-800 rounded-xl border overflow-hidden transition-colors ${swipeOffset > 30 ? 'border-emerald-500/50' : swipeOffset < -30 ? 'border-amber-500/50' : 'border-zinc-700/50'
+                }`}>
                 <div className="px-4 py-2.5 border-b border-zinc-700/50 flex justify-between items-center">
                   <span className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-500">
                     {currentQuestion.category.includes('地図') && <MapPin size={10} className="text-rose-400" />}
@@ -1081,7 +1073,7 @@ export default function KiokuApp() {
                       className={`h-1 rounded-full transition-all ${idx === currentIndex
                         ? (selectedSubject === 'history' ? 'bg-amber-400 w-4' : 'bg-purple-400 w-4')
                         : 'bg-zinc-700 w-1'
-                      }`}
+                        }`}
                     />
                   );
                 })}
@@ -1089,9 +1081,8 @@ export default function KiokuApp() {
 
               <button
                 onClick={handleNext}
-                className={`p-2 rounded-lg text-white transition-colors ${
-                  selectedSubject === 'history' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-purple-500 hover:bg-purple-600'
-                }`}
+                className={`p-2 rounded-lg text-white transition-colors ${selectedSubject === 'history' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-purple-500 hover:bg-purple-600'
+                  }`}
               >
                 <ChevronRight size={18} />
               </button>
