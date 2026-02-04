@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BookOpen, CheckCircle, RotateCcw, Trophy, ChevronRight, ChevronLeft, MapPin, Globe, RefreshCw, List, Layers } from 'lucide-react';
+import { BookOpen, CheckCircle, RotateCcw, Trophy, ChevronRight, ChevronLeft, MapPin, Globe, RefreshCw, List, Layers, ArrowLeft, History, Brain } from 'lucide-react';
 
-// --- データ定義 ---
-const rawData = [
+// --- 教科タイプ ---
+type Subject = 'history' | 'ethics';
+
+// --- 歴史データ ---
+const historyData = [
   // === 追加箇所：1925年の記述 ===
   { id: 100, category: "ナチスの台頭", question: "1925年に創設された、ヒトラー個人を守る忠実な武装集団、ナチス（　？　）。", answer: "親衛隊(SS)" },
   // === 第1弾データ（ナチス・日中戦争・満州事変） ===
@@ -122,7 +125,7 @@ const rawData = [
   { id: 1409, category: "敗戦への道", question: "1945年8月、日ソ中立条約を無視して（　？　）が参戦した。", answer: "ソ連" },
   { id: 1501, category: "戦争の被害・戦後", question: "ナチスはユダヤ人らを（　？　）をはじめとする強制収容所で虐殺した。", answer: "アウシュヴィッツ" },
   { id: 1502, category: "戦争の被害・戦後", question: "アジアの労働者や捕虜を強制労働させて建設された鉄道は（　？　）鉄道。", answer: "泰緬（たいめん）" },
-  // === 第3弾 データ（地図問題・冷戦・現代史） ===
+  // === 第3弾データ（地図問題・冷戦・現代史） ===
   // 太平洋戦争（地図）
   { id: 1601, category: "太平洋戦争（地図・まとめ）", question: "1941年12月8日、日本軍が奇襲攻撃を行ったハワイの場所（地図a）は？", answer: "真珠湾" },
   { id: 1602, category: "太平洋戦争（地図・まとめ）", question: "1942年、日本軍が主力空母4隻を喪失した海戦の場所（地図b）は？", answer: "ミッドウェー" },
@@ -159,6 +162,263 @@ const rawData = [
   { id: 1904, category: "戦後の日本", question: "ヒトとモノの地方分散への移行を狙った「列島改造」構想を掲げた首相は？", answer: "田中角栄" },
 ];
 
+// --- 倫理データ ---
+const ethicsData = [
+  { id: 1, category: "人間とは", question: "人間は生物として、何という微細な粒子から構成されているか。", answer: "原子" },
+  { id: 2, category: "人間とは", question: "人間は生物として、固有の遺伝情報を持つ何を持っているか。", answer: "DNA" },
+  { id: 3, category: "人間とは", question: "人間は動物分類学上、霊長類の何科に属しているか。", answer: "ヒト科" },
+  { id: 4, category: "人間とは", question: "人間は他の動物との差異として、特にどの部位が発達しているか。", answer: "大脳" },
+  { id: 5, category: "人間とは", question: "人間特有の、両足を使って立つ移動方法を何というか。", answer: "直立二足歩行" },
+  { id: 6, category: "人間とは", question: "人間の特質を知性（理性）にあると捉え、「知恵のある人」という意味で何と呼ぶか。", answer: "ホモ・サピエンス" },
+  { id: 7, category: "人間とは", question: "人間を「ホモ・サピエンス」と命名したスウェーデンの生物学者は誰か。", answer: "リンネ" },
+  { id: 8, category: "人間とは", question: "人間は自然に働きかけ、環境を作り変えるために何を作ってきたか。", answer: "道具" },
+  { id: 9, category: "人間とは", question: "道具を作る人という意味で、人間を「工作人」として何と呼ぶか。", answer: "ホモ・ファーベル" },
+  { id: 10, category: "人間とは", question: "「ホモ・ファーベル（工作人）」という人間観を提唱したフランスの哲学者は誰か。", answer: "ベルクソン" },
+  { id: 11, category: "人間とは", question: "人間が生活の必要から離れて自由に行う、文化形成の基礎となる活動は何か。", answer: "遊び" },
+  { id: 12, category: "人間とは", question: "遊ぶ人という意味で、人間を何と呼ぶか。", answer: "ホモ・ルーデンス" },
+  { id: 13, category: "人間とは", question: "「ホモ・ルーデンス（遊ぶ人）」という人間観を提唱したオランダの歴史家は誰か。", answer: "ホイジンガ" },
+  { id: 14, category: "人間とは", question: "人間は超越的な神を求めて宗教を生み出すことから、「宗教人」として何と呼ばれるか。", answer: "ホモ・レリギオース" },
+  { id: 15, category: "人間とは", question: "「ホモ・レリギオース（宗教人）」という人間観を提唱した宗教学者は誰か。", answer: "エリアーデ" },
+  { id: 16, category: "人間とは", question: "人間が持つ、創造的でありながら破壊的でもあるというような相反する性質を何というか。", answer: "二面性" },
+  { id: 17, category: "古代ギリシア", question: "世界の出来事が神々の超自然的な働きによるとする考え方を何というか。", answer: "神話的世界観" },
+  { id: 18, category: "古代ギリシア", question: "世界の成り立ちを神々や英雄の行為によって説明する物語を何というか。", answer: "神話" },
+  { id: 19, category: "古代ギリシア", question: "『イリアス』『オデュッセイア』を著した古代ギリシアの叙事詩人は誰か。", answer: "ホメロス" },
+  { id: 20, category: "古代ギリシア", question: "『神統記』を著した古代ギリシアの叙事詩人は誰か。", answer: "ヘシオドス" },
+  { id: 21, category: "古代ギリシア", question: "世界の成り立ちを神話ではなく、ロゴスによって捉えようとする考え方を何というか。", answer: "合理的世界観" },
+  { id: 22, category: "古代ギリシア", question: "合理的思考、ロゴスによって世界を捉えようとする態度から、何という学問が誕生したか。", answer: "哲学" },
+  { id: 23, category: "古代ギリシア", question: "古代ギリシアの自然哲学が探求しようとした「万物の根源」をギリシア語で何というか。", answer: "アルケー" },
+  { id: 24, category: "古代ギリシア", question: "「哲学の祖」と呼ばれるイオニアのミレトス出身の自然哲学者は誰か。", answer: "タレス" },
+  { id: 25, category: "古代ギリシア", question: "タレスは万物の根源を何であると説いたか。", answer: "水" },
+  { id: 26, category: "古代ギリシア", question: "三平方の定理で知られ、サモス島出身の自然哲学者は誰か。", answer: "ピタゴラス" },
+  { id: 27, category: "古代ギリシア", question: "ピタゴラスは万物の根源を何であると説いたか。", answer: "数" },
+  { id: 28, category: "古代ギリシア", question: "「万物は流転する」と説いたエフェソス出身の自然哲学者は誰か。", answer: "ヘラクレイトス" },
+  { id: 29, category: "古代ギリシア", question: "ヘラクレイトスは万物のありようについて、有名な言葉で何と説いたか。", answer: "万物は流転する" },
+  { id: 30, category: "古代ギリシア", question: "ヘラクレイトスはこの世界を「永遠に生きる何」であると表現したか。", answer: "火" },
+  { id: 31, category: "古代ギリシア", question: "土・水・火・空気の四元素説を唱えた自然哲学者は誰か。", answer: "エンペドクレス" },
+  { id: 32, category: "古代ギリシア", question: "アブデラ出身で、原子論を唱えた自然哲学者は誰か。", answer: "デモクリトス" },
+  { id: 33, category: "古代ギリシア", question: "デモクリトスは万物の根源を「原子」とした。この理論を何というか。", answer: "原子論" },
+  { id: 34, category: "プラトン", question: "プラトンがアテネ郊外に創設した学園を何というか。", answer: "アカデメイア" },
+  { id: 35, category: "プラトン", question: "プラトンが理想とした、哲学者が統治を行う政治体制を何というか。", answer: "哲人政治" },
+  { id: 36, category: "プラトン", question: "物事の理想としての姿を真の実在とみなす、プラトンの哲学的立場を何というか。", answer: "イデア論" },
+  { id: 37, category: "プラトン", question: "プラトンにおいて、究極で最高のイデアとされるものは何か。", answer: "善のイデア" },
+  { id: 38, category: "プラトン", question: "真の実在としてのイデアを恋い慕う、人間の魂の情熱を何というか。", answer: "エロース" },
+  { id: 39, category: "プラトン", question: "学ぶこととは、魂がかつて見ていたイデアを想い起こすことであるという説を何というか。", answer: "想起説（アナムネーシス）" },
+  { id: 40, category: "プラトン", question: "プラトンの魂の三分説において、指導的な役割を果たす魂の部分は何か。", answer: "理性" },
+  { id: 41, category: "プラトン", question: "プラトンの四元徳のうち、気概の部分に対応する徳は何か。", answer: "勇気" },
+  { id: 42, category: "アリストテレス", question: "アリストテレスが創設した学園を何というか。", answer: "リュケイオン" },
+  { id: 43, category: "アリストテレス", question: "アリストテレスの主著の一つで、存在の根本原理を探求した書物の名前は何か。", answer: "形而上学" },
+  { id: 44, category: "アリストテレス", question: "アリストテレス哲学において、事物に内在する本質的特徴を何というか。", answer: "形相（エイドス）" },
+  { id: 45, category: "アリストテレス", question: "アリストテレス哲学において、形相を実現するための素材となるものを何というか。", answer: "質料（ヒュレー）" },
+  { id: 46, category: "アリストテレス", question: "質料が形相を実現する可能性を秘めている状態を何というか。", answer: "可能態（デュナミス）" },
+  { id: 47, category: "アリストテレス", question: "質料が形相を実現し、具体的な姿を現した状態を何というか。", answer: "現実態（エネルゲイア）" },
+  { id: 48, category: "アリストテレス", question: "アリストテレスが理想とした、理性によって真理を直観する生活を何というか。", answer: "観想（テオリア）的生活" },
+  { id: 49, category: "アリストテレス", question: "過不足を避け、その中間を選ぶというアリストテレスの徳の原理を何というか。", answer: "中庸（メソテース）" },
+  { id: 50, category: "アリストテレス", question: "アリストテレスが説いた、人と人との間で互いに抱く親愛の情を何というか。", answer: "友愛（フィリア）" },
+  { id: 51, category: "ソフィスト・ソクラテス", question: "古代ギリシアで、報酬を受け取って教養や弁論術を教えた職業的教師たちを何というか。", answer: "ソフィスト" },
+  { id: 52, category: "ソフィスト・ソクラテス", question: "ソフィストのプロタゴラスが「万物の尺度」であると説いたものは何か。", answer: "人間" },
+  { id: 53, category: "ソフィスト・ソクラテス", question: "ソフィストたちが教えた、人を説得するための技術を何というか。", answer: "弁論術" },
+  { id: 54, category: "ソフィスト・ソクラテス", question: "真理は人によって異なるとする、ソフィストたちの考え方を何というか。", answer: "相対主義" },
+  { id: 55, category: "ソフィスト・ソクラテス", question: "ソクラテスが自覚していた、自分は大切なことについて何も知らないという知を何というか。", answer: "無知の知" },
+  { id: 56, category: "ソフィスト・ソクラテス", question: "ソクラテスが用いた対話による探求方法を何というか。", answer: "問答法" },
+  { id: 57, category: "ソフィスト・ソクラテス", question: "ソクラテスの問答法は、相手から真理を引き出すことから別名何と呼ばれるか。", answer: "助産術" },
+  { id: 58, category: "ソフィスト・ソクラテス", question: "ソクラテスが用いた、無知を装って相手に気づきを与える手法（エイロネイア）を何というか。", answer: "反語" },
+  { id: 59, category: "ソフィスト・ソクラテス", question: "ソクラテスが重視したデルフォイの神託の言葉は何か。", answer: "汝自身を知れ" },
+  { id: 60, category: "ソフィスト・ソクラテス", question: "ソクラテスが説いた、自分自身の魂が優れたものになるよう配慮することを何というか。", answer: "魂（プシュケー）への配慮" },
+  { id: 61, category: "ソフィスト・ソクラテス", question: "真に知っていることと行うことは一致するという、ソクラテスの思想を何というか。", answer: "知行合一" },
+  { id: 62, category: "ソフィスト・ソクラテス", question: "徳について知れば徳のある人になれるという、ソクラテスの思想を何というか。", answer: "知徳合一" },
+  { id: 63, category: "ソフィスト・ソクラテス", question: "ソクラテスが死に際して説いた、単に生きるのではなく、どう生きることが大切か。", answer: "よく生きること" },
+  { id: 64, category: "ユダヤ教", question: "ユダヤ教が信仰する唯一神の名は何か。", answer: "ヤハウェ" },
+  { id: 65, category: "ユダヤ教", question: "ユダヤ教のように、特定の民族のみが救われるとする宗教形態を何というか。", answer: "民族宗教" },
+  { id: 66, category: "ユダヤ教", question: "ユダヤ教の聖典は何と呼ばれるか。", answer: "旧約聖書" },
+  { id: 67, category: "ユダヤ教", question: "ユダヤ教における神の教えや戒律のことを何というか。", answer: "律法（トーラー）" },
+  { id: 68, category: "ユダヤ教", question: "古代イスラエルの指導者モーセが神から授かった十カ条の戒めを何というか。", answer: "モーセの十戒" },
+  { id: 69, category: "ユダヤ教", question: "神から選ばれ、神の言葉を人々に伝える役割を持つ者を何というか。", answer: "預言者" },
+  { id: 70, category: "ユダヤ教", question: "ユダヤ王国が滅ぼされ、人々がバビロニアへ連れ去られた歴史的事件を何というか。", answer: "バビロン捕囚" },
+  { id: 71, category: "ユダヤ教", question: "イスラエル民族を救済し、神の国をもたらす者を何と呼ぶか。", answer: "救世主（メシア）" },
+  { id: 72, category: "ユダヤ教", question: "律法を厳格に守ることによってのみ救われるとする立場を何というか。", answer: "律法主義" },
+  { id: 73, category: "ユダヤ教", question: "律法の文字通りの遵守を重んじた、ユダヤ教の厳格な派閥を何というか。", answer: "パリサイ派" },
+  { id: 74, category: "キリスト教", question: "イエスは、神の本質は何であると説いたか。", answer: "愛（神の愛）" },
+  { id: 75, category: "キリスト教", question: "神がすべての人に注ぐ無償の愛をギリシア語で何というか。", answer: "アガペー" },
+  { id: 76, category: "キリスト教", question: "イエスの第一の戒めは、心を尽くして「誰」を愛せよというものか。", answer: "神への愛" },
+  { id: 77, category: "キリスト教", question: "イエスの第二の戒めは、自分を愛するように「誰」を愛せよというものか。", answer: "隣人への愛" },
+  { id: 78, category: "キリスト教", question: "イエスの言行や使徒の手紙などが記されたキリスト教の聖典を何というか。", answer: "新約聖書" },
+  { id: 79, category: "キリスト教", question: "「救世主」を意味する言葉で、イエスに対する信仰告白として用いられる称号は何か。", answer: "キリスト" },
+  { id: 80, category: "キリスト教", question: "イエスが死後3日目に蘇り、弟子の前に現れた出来事を何というか。", answer: "復活" },
+  { id: 81, category: "キリスト教", question: "イエスが人間の罪を背負って身代わりに死に、罪を償ったことを何というか。", answer: "贖罪" },
+  { id: 82, category: "キリスト教", question: "パウロは、人が義とされるのは律法ではなく「信仰のみ」によると説いた。この教義を何というか。", answer: "信仰義認" },
+  { id: 83, category: "キリスト教", question: "キリスト教の三元徳を答えよ。", answer: "信仰・希望・愛" },
+  { id: 84, category: "キリスト教", question: "キリスト教における信仰者の共同体を何というか。", answer: "教会（エクレシア）" },
+  { id: 85, category: "イスラーム教", question: "イスラーム教を開いた預言者は誰か。", answer: "ムハンマド" },
+  { id: 86, category: "イスラーム教", question: "イスラーム教が信仰する唯一絶対の神の名は何か。", answer: "アッラー" },
+  { id: 87, category: "イスラーム教", question: "ムハンマドに下された神の啓示を記したイスラーム教の聖典は何か。", answer: "クルアーン（コーラン）" },
+  { id: 88, category: "イスラーム教", question: "イスラーム教において、「神に帰依する者（信者）」を何と呼ぶか。", answer: "ムスリム" },
+  { id: 89, category: "イスラーム教", question: "ムスリムが信じるべき六つの項目を総称して何というか。", answer: "六信" },
+  { id: 90, category: "イスラーム教", question: "ムスリムが実践すべき五つの義務を総称して何というか。", answer: "五行" },
+  { id: 91, category: "イスラーム教", question: "五行の一つで、唯一神と預言者への信仰を言葉で表すことを何というか。", answer: "信仰告白（シャハーダ）" },
+  { id: 92, category: "イスラーム教", question: "五行の一つで、一日五回メッカの方角へ祈ることを何というか。", answer: "礼拝（サラート）" },
+  { id: 93, category: "イスラーム教", question: "五行の一つで、貧しい人々への施し（浄財）を何というか。", answer: "喜捨（ザカート）" },
+  { id: 94, category: "イスラーム教", question: "五行の一つで、ラマダン月に飲食を絶つことを何というか。", answer: "断食（サウム）" },
+  { id: 95, category: "イスラーム教", question: "五行の一つで、聖地メッカへ赴くことを何というか。", answer: "巡礼（ハッジ）" },
+  { id: 96, category: "イスラーム教", question: "イスラームにおいて、神の道のための努力や戦いを何というか。", answer: "聖戦（ジハード）" },
+  { id: 97, category: "イスラーム教", question: "イスラーム教徒による信仰の共同体を何と呼ぶか。", answer: "ウンマ" },
+  { id: 98, category: "インド思想", question: "古代インド社会における厳格な身分制度を何というか。", answer: "カースト制度" },
+  { id: 99, category: "インド思想", question: "古代アーリア人が信仰した、祭式中心の民族宗教を何というか。", answer: "バラモン教" },
+  { id: 100, category: "インド思想", question: "バラモン教の根本聖典を何というか。", answer: "ヴェーダ" },
+  { id: 101, category: "インド思想", question: "祭式よりも内面的な哲学的思索を重視したバラモン教の聖典（奥義書）を何というか。", answer: "ウパニシャッド" },
+  { id: 102, category: "インド思想", question: "人間の行為がその後の運命を決定するという法則を何というか。", answer: "業（カルマ）" },
+  { id: 103, category: "インド思想", question: "霊魂が生まれ変わりを繰り返すことを何というか。", answer: "輪廻（サンサーラ）" },
+  { id: 104, category: "インド思想", question: "輪廻の苦しみから解放され、永遠の安らぎを得ることを何というか。", answer: "解脱" },
+  { id: 105, category: "インド思想", question: "ウパニシャッド哲学における宇宙の根本原理を何というか。", answer: "ブラフマン（梵）" },
+  { id: 106, category: "インド思想", question: "ウパニシャッド哲学における個人の本質的自己を何というか。", answer: "アートマン（我）" },
+  { id: 107, category: "インド思想", question: "宇宙の根本原理（梵）と個人の自己（我）が一体であるという境地を何というか。", answer: "梵我一如" },
+  { id: 108, category: "仏教", question: "仏教を開いた人物（釈迦）の名前は何か。", answer: "ゴータマ＝シッダールタ" },
+  { id: 109, category: "仏教", question: "「人生は思い通りにならない苦しみである」という仏教の真理を何というか。", answer: "一切皆苦" },
+  { id: 110, category: "仏教", question: "「全てのものは移ろいゆく」という仏教の真理を何というか。", answer: "諸行無常" },
+  { id: 111, category: "仏教", question: "「すべてのものに固定的な実体はない」という仏教の真理を何というか。", answer: "諸法無我" },
+  { id: 112, category: "仏教", question: "煩悩が消え、苦しみのなくなった悟りの境地を何というか。", answer: "涅槃寂静" },
+  { id: 113, category: "仏教", question: "ブッダが悟った真理・法則のことをサンスクリット語で何というか。", answer: "ダルマ（法）" },
+  { id: 114, category: "仏教", question: "全てのものは原因と条件によって支え合って存在するという法則を何というか。", answer: "縁起の法" },
+  { id: 115, category: "仏教", question: "ブッダが説いた四つの普遍的な真理を総称して何というか。", answer: "四諦" },
+  { id: 116, category: "仏教", question: "四諦の一つで、「人生は苦である」という真理を何というか。", answer: "苦諦" },
+  { id: 117, category: "仏教", question: "四諦の一つで、「苦の原因は煩悩（執着）である」という真理を何というか。", answer: "集諦" },
+  { id: 118, category: "仏教", question: "四諦の一つで、「煩悩を滅した境地（涅槃）がある」という真理を何というか。", answer: "滅諦" },
+  { id: 119, category: "仏教", question: "四諦の一つで、「涅槃に至るための正しい道がある」という真理を何というか。", answer: "道諦" },
+  { id: 120, category: "仏教", question: "涅槃に至るための具体的な八つの実践徳目を何というか。", answer: "八正道" },
+  { id: 121, category: "仏教", question: "快楽と苦行の両極端を避け、正しい知恵と努力を重視する道を何というか。", answer: "中道" },
+  { id: 122, category: "仏教", question: "煩悩の炎が吹き消された状態を意味する、仏教の最終的な悟りの境地は何か。", answer: "涅槃（ニルヴァーナ）" },
+  { id: 123, category: "仏教", question: "生きとし生けるものへの深い愛や憐れみの心を、仏教では何というか。", answer: "慈悲" },
+  { id: 124, category: "仏教", question: "自らの救済だけでなく、他者の救済（利他）を重視する仏教を何というか。", answer: "大乗仏教" },
+  { id: 125, category: "仏教", question: "出家して自らの修行と悟りの完成を目指した仏教（保守的な部派）を何と呼ぶか。", answer: "上座部仏教" },
+  { id: 126, category: "仏教", question: "大乗仏教の「大乗」とは、どういう意味か。", answer: "大きな乗り物（マハーヤーナ）" },
+  { id: 127, category: "仏教", question: "大乗仏教において、悟りを求めつつ他者の救済に努める理想的な人間像を何というか。", answer: "菩薩" },
+  { id: 128, category: "仏教", question: "大乗仏教の「空」の思想を理論化したインドの僧は誰か。", answer: "ナーガールジュナ（竜樹）" },
+  { id: 129, category: "仏教", question: "すべての事物には固定的な実体がないとする大乗仏教の根本思想を何というか。", answer: "空の思想" },
+  { id: 130, category: "仏教", question: "唯識思想を大成したインドの僧で、無着の弟にあたる人物は誰か。", answer: "ヴァスバンドゥ（世親）" },
+  { id: 131, category: "仏教", question: "世界はただ心の表れにすぎないとする大乗仏教の思想を何というか。", answer: "唯識思想" },
+  { id: 132, category: "日本仏教", question: "聖徳太子の言葉とされる「世間は虚しく、仏のみが真実である」という意味の語句を答えよ。", answer: "世間虚仮、唯仏是真" },
+  { id: 133, category: "日本仏教", question: "聖徳太子が制定した『十七条憲法』第一条で重視された精神は何か。", answer: "和の精神" },
+  { id: 134, category: "日本仏教", question: "仏教の力によって国家の安泰を図ろうとする思想を何というか。", answer: "鎮護国家" },
+  { id: 135, category: "日本仏教", question: "平安時代の貴族たちが求めた、この世で神仏から得られる利益を何というか。", answer: "現世利益" },
+  { id: 136, category: "日本仏教", question: "最澄が比叡山延暦寺を拠点として開いた宗派は何か。", answer: "天台宗" },
+  { id: 137, category: "日本仏教", question: "すべての人間に生まれながらに備わっている、仏となる可能性を何というか。", answer: "仏性" },
+  { id: 138, category: "日本仏教", question: "空海が高野山金剛峯寺を拠点として開いた宗派は何か。", answer: "真言宗" },
+  { id: 139, category: "日本仏教", question: "真言宗のように、奥深い秘密の教えを師から弟子へ伝える仏教を何というか。", answer: "密教" },
+  { id: 140, category: "日本仏教", question: "三密の行により、この身のままで仏になることを何というか。", answer: "即身成仏" },
+  { id: 141, category: "日本仏教", question: "日本古来の神と外来の仏教を結びつけて考える思想を何というか。", answer: "神仏習合" },
+  { id: 142, category: "日本仏教", question: "釈迦の死後、時代とともに仏法が衰えるとする歴史観を何というか。", answer: "末法思想" },
+  { id: 143, category: "日本仏教", question: "阿弥陀仏の力にすがって極楽浄土へ往生することを願う信仰を何というか。", answer: "浄土信仰" },
+  { id: 144, category: "日本仏教", question: "法然が説いた、ひたすら「南無阿弥陀仏」と唱える行を何というか。", answer: "専修念仏" },
+  { id: 145, category: "日本仏教", question: "親鸞が説いた、自らの罪を自覚した悪人こそが阿弥陀仏の救済対象であるという説を何というか。", answer: "悪人正機説" },
+  { id: 146, category: "日本仏教", question: "禅宗において、悟りを開くために行う座ってする修行を何というか。", answer: "坐禅" },
+  { id: 147, category: "日本仏教", question: "道元が説いた、余計な計らいを捨ててただひたすら坐禅することを何というか。", answer: "只管打坐" },
+  { id: 148, category: "日本仏教", question: "道元が説いた、坐禅によって心身の執着が抜け落ちた悟りの境地を何というか。", answer: "身心脱落" },
+  { id: 149, category: "日本仏教", question: "日蓮宗において唱える「南無妙法蓮華経」という言葉を何というか。", answer: "題目" },
+  { id: 150, category: "日本仏教", question: "仏が本体であり、神は民衆を救うために仮の姿で現れたとする説を何というか。", answer: "本地垂迹説" },
+  { id: 151, category: "中国思想", question: "荀子が説いた、人間の本性は悪であるという説を何というか。", answer: "性悪説" },
+  { id: 152, category: "中国思想", question: "荀子が主張した、人為的な外的規範である礼によって政治を行う考え方を何というか。", answer: "礼治主義" },
+  { id: 153, category: "中国思想", question: "老子が説いた、本来の道は万物をありのままに生み育てる無為自然の道であり、その道が廃れたために仁義の道徳を説く孔孟の教えが現れたという批判の言葉は何か。", answer: "大道廃れて仁義あり" },
+  { id: 154, category: "中国思想", question: "老子が説いた、万物を生み出す根源を何というか。", answer: "道（タオ）" },
+  { id: 155, category: "中国思想", question: "老子が説いた、何事にも作為をろうせず、万物をおのずからそうなるように生み育てる道の働きを指す言葉は何か。", answer: "無為自然" },
+  { id: 156, category: "中国思想", question: "老子が説いた、無為自然の生き方の理想的な例えとして挙げた言葉は何か。", answer: "上善は水の如し" },
+  { id: 157, category: "中国思想", question: "老子が説いた、柔和で弱々しそうで、人と争わない謙虚な態度のことを何というか。", answer: "柔弱謙下" },
+  { id: 158, category: "中国思想", question: "老子の説いた理想社会で、素朴で柔弱な心を持つ人々の住む小国を何というか。", answer: "小国寡民" },
+  { id: 159, category: "中国思想", question: "荘子が説いた、人間の世界では人為的に大小・是非・善悪などを区別しているが、自然の世界では対立差別がなく全て同一であるという考えを何というか。", answer: "万物斉同" },
+  { id: 160, category: "中国思想", question: "荘子が説いた、心から分別の働きを除いて、心を１つにして虚無にし、自己の心身を忘れ去って無為自然の道と一体となる修養法を何というか。", answer: "心斎坐忘" },
+  { id: 161, category: "中国思想", question: "荘子が説いた、一切の欲望や分別から自由となり、虚心になって天地自然と一体となる境地に遊び、与えられた寿命を全うする理想の人間像を何というか。", answer: "真人" },
+  { id: 162, category: "中国思想", question: "荘子が説いた、あるがままの自然に身を委ね、万物の生成変化に応じて自由の境地に遊ぶことを何というか。", answer: "逍遥遊" },
+  { id: 163, category: "朱子学・陽明学", question: "朱子学の理論で、万物を貫く宇宙の原理（理）と万物の物質的な素材（気）によって万物の成り立ちを説明する理論を何というか。", answer: "理気二元論" },
+  { id: 164, category: "朱子学・陽明学", question: "朱子学における、人間の心の本性（性）は、天が授けた理法（理）であるという考えを何というか。", answer: "性即理" },
+  { id: 165, category: "朱子学・陽明学", question: "朱子学における修養の方法で、一つ一つの物の理を極めていくことによって、万物を貫く理を極めることを何というか。", answer: "格物致知" },
+  { id: 166, category: "朱子学・陽明学", question: "朱子学における修養の方法で、欲望を抑えて身の振る舞いを厳粛にし、客観的な道徳理に従うことを何というか。", answer: "居敬窮理" },
+  { id: 167, category: "朱子学・陽明学", question: "陽明学の祖、王陽明が説いた、生き生きと働く現実の心がそのまま理であるとする考えを何というか。", answer: "心即理" },
+  { id: 168, category: "朱子学・陽明学", question: "王陽明が説いた、人間に先天的に備わっている善悪を判断する心の本体を何というか。", answer: "良知" },
+  { id: 169, category: "朱子学・陽明学", question: "王陽明が説いた、知（認識）と行（実践）とは同じ心の作用の両面であり、本来一つのものであるという考えを何というか。", answer: "知行合一" },
+  { id: 170, category: "日本儒教", question: "藤原惺窩が説いた、朱子学の学問体系を何というか。", answer: "京学" },
+  { id: 171, category: "日本儒教", question: "林羅山が説いた、天地間の上下の秩序と同様に、人間社会にも上下の身分秩序があるとする理を何というか。", answer: "上下定分の理" },
+  { id: 172, category: "日本儒教", question: "林羅山が説いた、心の中に敬を持ち続ける修養法を何というか。", answer: "存心持敬" },
+  { id: 173, category: "日本儒教", question: "中江藤樹が説いた、人間愛の根本であり、すべての徳の基本となるものを何というか。", answer: "孝" },
+  { id: 174, category: "日本儒教", question: "中江藤樹の主著で、対話形式で道徳を説いた書物は何か。", answer: "翁問答" },
+  { id: 175, category: "日本儒教", question: "伊藤仁斎が提唱した、『論語』『孟子』の原典に立ち返り、その古義を明らかにしようとする学問を何というか。", answer: "古義学" },
+  { id: 176, category: "日本儒教", question: "伊藤仁斎が孔子の教えの根本として重視した、万人に通じる愛の道を何というか。", answer: "仁愛" },
+  { id: 177, category: "日本儒教", question: "荻生徂徠が提唱した、後世の解釈を排し、古代中国の先王の道を直接研究する学問を何というか。", answer: "古文辞学" },
+  { id: 178, category: "日本儒教", question: "荻生徂徠が説いた、天下の万民を安んじるために人為的に制作した古代中国の聖人の道を何というか。", answer: "先王の道" },
+  { id: 179, category: "日本儒教", question: "荻生徂徠が説いた、世を治め、民を救うことを目的とする政治論を何というか。", answer: "経世済民" },
+  { id: 180, category: "国学", question: "本居宣長が確立した、仏教や儒教の影響を受ける以前の、日本固有の精神や文化を探求する学問を何というか。", answer: "国学" },
+  { id: 181, category: "国学", question: "本居宣長が説いた、儒教や仏教など、中国の学問によって感化された心を何というか。", answer: "漢意" },
+  { id: 182, category: "国学", question: "本居宣長が説いた、漢意を去り、日本の神代から伝わる純粋な心を何というか。", answer: "真心（大和魂）" },
+  { id: 183, category: "国学", question: "本居宣長が説いた、人の心が外界の物事に触れて起こる、しみじみとした感動を何というか。", answer: "もののあはれ" },
+  { id: 184, category: "国学", question: "本居宣長が説いた、仏の説を一切排し、日本固有の純粋な古代の神の道を説く神道を何というか。", answer: "復古神道" },
+  { id: 185, category: "西洋近代思想", question: "ルネサンス期に見られた、ギリシア・ローマの古典に人間性の典型を求め、古典文学を学ぶことを通して人間性を回復しようとする考え方を何というか。", answer: "人文主義（ヒューマニズム）" },
+  { id: 186, category: "西洋近代思想", question: "ピコ＝デラ＝ミランドラの著書で、人間の自由意志について論じたものは何か。", answer: "人間の尊厳について" },
+  { id: 187, category: "西洋近代思想", question: "ルネサンス期の理想的人間像で、様々な分野で才能を発揮する人を何というか。", answer: "万能人" },
+  { id: 188, category: "西洋近代思想", question: "ローマ＝カトリック教会が発行した、罪の許しが得られるとする証書を何というか。", answer: "免罪符（贖宥状）" },
+  { id: 189, category: "西洋近代思想", question: "ルターが説いた、人間が義とされる（贖罪）は善行によってではなく、内面的な信仰のみによってであるという説を何というか。", answer: "信仰義認説" },
+  { id: 190, category: "西洋近代思想", question: "ルターが説いた、信仰する者は誰でも司祭であり、僧俗の区別はないとする思想を何というか。", answer: "万人司祭主義" },
+  { id: 191, category: "西洋近代思想", question: "ルターが説いた、あらゆる職業は神によって召されて与えられた使命（召命）であり、神の栄光の実現のために仕事に励むべきであるとする職業観を何というか。", answer: "職業召命観" },
+  { id: 192, category: "西洋近代思想", question: "カルヴァンが説いた、人間が救われるか否かは神の意志によって定まっており、人間の善行にはよらないとする説を何というか。", answer: "予定説" },
+  { id: 193, category: "科学革命", question: "ベーコンの有名な言葉で、経験に基づく知識は自然を支配する力になるという意味の言葉は何か。", answer: "知は力なり" },
+  { id: 194, category: "科学革命", question: "ベーコンが指摘した、物事を正しく認識することを妨げる先入観や偏見を何というか。", answer: "イドラ" },
+  { id: 195, category: "科学革命", question: "ベーコンが説いたイドラのうち、人間という種族に共通する偏見を何というか。", answer: "種族のイドラ" },
+  { id: 196, category: "科学革命", question: "ベーコンが説いたイドラのうち、個人の個人的な性格・環境に由来する偏見を何というか。", answer: "洞窟のイドラ" },
+  { id: 197, category: "科学革命", question: "ベーコンが説いたイドラのうち、言葉の不適切な使用によって生じる偏見を何というか。", answer: "市場のイドラ" },
+  { id: 198, category: "科学革命", question: "ベーコンが説いたイドラのうち、伝統や権威を無批判に受け入れるところから生じる偏見を何というか。", answer: "劇場のイドラ" },
+  { id: 199, category: "科学革命", question: "ベーコンが提唱した、数多くの観察や実験によって得られた個々の経験的事実から、それらに共通する一般的法則を求める方法を何というか。", answer: "帰納法" },
+  { id: 200, category: "科学革命", question: "ベーコンに代表される、知識の源泉を感覚的経験に求める立場を何というか。", answer: "経験論" },
+  { id: 201, category: "科学革命", question: "デカルトに代表される、確実な知識の源泉を理性に求める考え方を何というか。", answer: "合理論" },
+  { id: 202, category: "科学革命", question: "デカルトが提唱した、普遍的原理から理性的な推理によって個別の真理や知識を導く方法を何というか。", answer: "演繹法" },
+  { id: 203, category: "科学革命", question: "デカルトが行った、絶対に確実な真理を見つけるために、あらゆるものを疑っていく方法を何というか。", answer: "方法的懐疑" },
+  { id: 204, category: "科学革命", question: "デカルトが到達した哲学の根本原理を示す言葉は何か。", answer: "われ思う、ゆえに我あり" },
+  { id: 205, category: "科学革命", question: "デカルトが説いた、思惟するもの（精神）と延長するもの（物体）とはそれぞれ独立的に実在する実体であると考える立場を何というか。", answer: "物心二元論" },
+  { id: 206, category: "科学革命", question: "デカルトが提唱した、あらゆる自然現象を物体の機械的な運動に還元して説明する自然観を何というか。", answer: "機械論的自然観" },
+  { id: 207, category: "科学革命", question: "デカルトが示した、情念を理性によって統御する、気高い精神のあり方を何というか。", answer: "高邁の精神" },
+  { id: 208, category: "社会契約説", question: "グロティウスが説いた、人間の理性に基づき、いついかなる時も守られるべき普遍的な法を何というか。", answer: "自然法" },
+  { id: 209, category: "社会契約説", question: "ホッブズやロックが想定した、国家や社会が成立する以前の、法や道徳などの人為的抑制のない状態を何というか。", answer: "自然状態" },
+  { id: 210, category: "社会契約説", question: "人間が生まれながらに持っている、生命・自由・財産などを守る権利を何というか。", answer: "自然権" },
+  { id: 211, category: "社会契約説", question: "ホッブズが説いた、自然状態における、各人が自己保存の欲求を満たすために互いに争う状態を何というか。", answer: "万人の万人に対する闘争" },
+  { id: 212, category: "社会契約説", question: "ホッブズの主著で、国家を巨大な怪物に例えた書名は何か。", answer: "リヴァイアサン" },
+  { id: 213, category: "社会契約説", question: "ロックが説いた、政府が人民から信託された権力を濫用する場合に、政府に対して抵抗する権利を何というか。", answer: "抵抗権（革命権）" },
+  { id: 214, category: "社会契約説", question: "ロックが説いた、人間の心は本来白紙（タブラ・ラサ）であり、知識は全て経験によって与えられるとする考え方を何というか。", answer: "白紙説" },
+  { id: 215, category: "社会契約説", question: "ルソーが説いた、文明社会の堕落を批判し、自然状態を理想とする思想を表す標語は何か。", answer: "自然に帰れ" },
+  { id: 216, category: "社会契約説", question: "ルソーが説いた、個人の私的な利益を求める意志を何というか。", answer: "特殊意志" },
+  { id: 217, category: "社会契約説", question: "ルソーが説いた、個人の意志を超えて公共の利益だけを目指す普遍的な意志を何というか。", answer: "一般意志" },
+  { id: 218, category: "社会契約説", question: "ルソーが理想とした、国民が政治に直接参加し、最終的な意志決定を行う制度を何というか。", answer: "直接民主制" },
+  { id: 219, category: "ドイツ観念論", question: "カントが説いた、理性が自ら定めた道徳法則に自ら従うことを何というか。", answer: "自律" },
+  { id: 220, category: "ドイツ観念論", question: "カントが説いた、自律的に行為する自由な道徳的主体としての人間のあり方を何というか。", answer: "人格" },
+  { id: 221, category: "ドイツ観念論", question: "カントが説いた、条件つきの命令（〜ならば...せよ）ではなく、無条件の命令（...せよ）の形式をとる道徳法則を何というか。", answer: "定言命法" },
+  { id: 222, category: "ドイツ観念論", question: "カントが提唱した、人間が相互に目的として尊敬し合う理想社会を何というか。", answer: "目的の国" },
+  { id: 223, category: "ドイツ観念論", question: "ヘーゲル哲学において、歴史の主体となり、歴史を動かしている完全に自由な精神を何というか。", answer: "絶対精神" },
+  { id: 224, category: "ドイツ観念論", question: "ヘーゲルが説いた、万物がそのうちに有している矛盾・対立を統一し、より高次のものへと至る運動・発展の論理を何というか。", answer: "弁証法" },
+  { id: 225, category: "ドイツ観念論", question: "弁証法において、ある立場（正）とそれに対立する立場（反）を統合し、より高次の立場（合）へと高めることを何というか。", answer: "止揚（アウフヘーベン）" },
+  { id: 226, category: "ドイツ観念論", question: "ヘーゲルが説いた、客観的・外面的な法と主観的・内面的な道徳性を統一したものを何というか。", answer: "人倫" },
+  { id: 227, category: "ドイツ観念論", question: "ヘーゲルが説いた人倫の三段階のうち、家族から独立して自由で平等になった個人が、自己の欲望を満たすために利益を追求する経済社会を何というか。", answer: "市民社会" },
+  { id: 228, category: "ドイツ観念論", question: "ヘーゲルが説いた、家族の全体性・普遍性と市民社会における個々の独立性・個別性を止揚した人倫の完成態を何というか。", answer: "国家" },
+  { id: 229, category: "日本近代思想", question: "江戸時代、オランダ語を通じて西洋の学術・文化を学ぶ学問を何というか。", answer: "蘭学" },
+  { id: 230, category: "日本近代思想", question: "佐久間象山が唱えた、東洋の道徳（魂）を基調としつつ、西洋の科学技術（才能）を活用しようとする態度を何というか。", answer: "和魂洋才" },
+  { id: 231, category: "日本近代思想", question: "福沢諭吉らが結成した、西洋思想の啓蒙を目指す団体・結社を何というか。", answer: "明六社" },
+  { id: 232, category: "日本近代思想", question: "福沢諭吉が説いた、人間の自由・平等といった権利は、生まれながらにして天から与えられたものであるという思想を何というか。", answer: "天賦人権論" },
+  { id: 233, category: "日本近代思想", question: "福沢諭吉が説いた、個人がそれぞれ自主独立の生活を営もうとする精神を何というか。", answer: "独立自尊" },
+  { id: 234, category: "日本近代思想", question: "福沢諭吉が奨励した、西洋学問にみられる合理的で日常生活に実際に役立つ学問を何というか。", answer: "実学" },
+  { id: 235, category: "日本近代思想", question: "福沢諭吉が唱えた、アジア文明を野蛮とし、西欧的近代国家建設を目指すべきだとの考えを何というか。", answer: "脱亜論" },
+  { id: 236, category: "日本近代思想", question: "中江兆民が紹介した、ルソーの『社会契約論』の翻訳書の題名は何か。", answer: "民約訳解" },
+  { id: 237, category: "日本近代思想", question: "夏目漱石が説いた、伝統的な社会関係から解放され、自我の内面的要求に基づいて生きることを何というか。", answer: "自己本位" },
+  { id: 238, category: "日本近代思想", question: "夏目漱石が晩年に到達した、小さな自我を去り、自然の理法に従って生きる境地を何というか。", answer: "則天去私" },
+  { id: 239, category: "日本近代思想", question: "武者小路実篤・志賀直哉らが結成した、人道主義・理想主義的な文学派閥を何というか。", answer: "白樺派" },
+  { id: 240, category: "日本近代思想", question: "徳富蘇峰が唱えた、一般民衆の立場に立つ政治的主張を何というか。", answer: "平民主義" },
+  { id: 241, category: "日本近代思想", question: "三宅雪嶺らが唱えた、日本の伝統・文化を維持しようとする思想を何というか。", answer: "国粋主義" },
+  { id: 242, category: "日本近代思想", question: "内村鑑三が不敬事件を起こすきっかけとなった、教育に関する勅語を何というか。", answer: "教育勅語" },
+  { id: 243, category: "日本近代思想", question: "内村鑑三が唱えた、教会という制度によらず、聖書のみに基づいて信仰する立場を何というか。", answer: "無教会主義" },
+  { id: 244, category: "日本近代思想", question: "幸徳秋水らが処刑された、天皇暗殺を計画したとされる事件を何というか。", answer: "大逆事件" },
+  { id: 245, category: "日本近代思想", question: "吉野作造が唱えた、主権の所在を問わず、政治の目的を民衆の利福に置き、民衆の意向を政治決定の基礎とする考えを何というか。", answer: "民本主義" },
+  { id: 246, category: "日本近代思想", question: "全国水平社が結成され、差別の撤廃と人権の確立を目指した運動を何というか。", answer: "部落解放運動" },
+  { id: 247, category: "日本近代思想", question: "平塚らいてうらが雑誌『青鞜』を発刊して展開した、女性の権利獲得を目指す運動を何というか。", answer: "女性解放運動" },
+  { id: 248, category: "日本独自の哲学", question: "西田幾多郎の主著で、日本独自の哲学体系を打ち立てた書物は何か。", answer: "善の研究" },
+  { id: 249, category: "日本独自の哲学", question: "西田幾多郎が説いた、主観と客観とがまだ区別されていない、知的な分別を加える以前の直接的な経験を何というか。", answer: "純粋経験" },
+  { id: 250, category: "日本独自の哲学", question: "西田幾多郎が説いた、主観と客観が未だ分かれていない状態を何というか。", answer: "主客未分" },
+  { id: 251, category: "日本独自の哲学", question: "和辻哲郎が説いた、人間は決して孤立した個人的な存在ではなく、常に人と人との関係においてのみ人間たりうるということを示す概念は何か。", answer: "間柄的存在" },
+  { id: 252, category: "日本独自の哲学", question: "柳田国男が研究対象とした、古くからある共同体の中に生きる普通の人々を何というか。", answer: "常民" },
+  { id: 253, category: "日本独自の哲学", question: "柳田国男が創始した、民衆の生活に密着した伝統文化や伝承を探求する学問を何というか。", answer: "民俗学" },
+];
+
 // --- ユーティリティ関数 ---
 const shuffleArray = <T,>(array: T[]): T[] => {
   const newArray = [...array];
@@ -169,15 +429,25 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return newArray;
 };
 
-const getUniqueCategories = (data: typeof rawData) => {
-  const order = [
-    "ナチスの台頭", "ナチスの内政", "ドイツ情勢", "ヒトラーの経歴", "ヒトラーの拡張",
-    "満州事変", "日中戦争前夜", "日中戦争", "戦時体制",
-    "第二次世界大戦", "欧州戦線の終結", "独ソ戦",
-    "太平洋戦争", "太平洋戦争（地図・まとめ）",
-    "戦時下の日本", "敗戦への道", "戦争の被害・戦後",
-    "冷戦の終結", "戦後の欧州", "戦後のアメリカ", "戦後の日本"
-  ];
+const historyCategoryOrder = [
+  "ナチスの台頭", "ナチスの内政", "ドイツ情勢", "ヒトラーの経歴", "ヒトラーの拡張",
+  "満州事変", "日中戦争前夜", "日中戦争", "戦時体制",
+  "第二次世界大戦", "欧州戦線の終結", "独ソ戦",
+  "太平洋戦争", "太平洋戦争（地図・まとめ）",
+  "戦時下の日本", "敗戦への道", "戦争の被害・戦後",
+  "冷戦の終結", "戦後の欧州", "戦後のアメリカ", "戦後の日本"
+];
+
+const ethicsCategoryOrder = [
+  "人間とは", "古代ギリシア", "ソフィスト・ソクラテス", "プラトン", "アリストテレス",
+  "ユダヤ教", "キリスト教", "イスラーム教", "インド思想", "仏教", "日本仏教",
+  "中国思想", "朱子学・陽明学", "日本儒教", "国学",
+  "西洋近代思想", "科学革命", "社会契約説", "ドイツ観念論",
+  "日本近代思想", "日本独自の哲学"
+];
+
+const getUniqueCategories = (data: typeof historyData, subject: Subject) => {
+  const order = subject === 'history' ? historyCategoryOrder : ethicsCategoryOrder;
   const uniqueCats = Array.from(new Set(data.map(item => item.category)));
   return uniqueCats.sort((a, b) => {
     const indexA = order.indexOf(a);
@@ -189,11 +459,12 @@ const getUniqueCategories = (data: typeof rawData) => {
   });
 };
 
-const STORAGE_KEY = 'history-study-mastered-ids';
+const getStorageKey = (subject: Subject) => `kioku-${subject}-mastered-ids`;
+const SUBJECT_STORAGE_KEY = 'kioku-selected-subject';
 
-const loadMasteredIds = (): number[] => {
+const loadMasteredIds = (subject: Subject): number[] => {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(getStorageKey(subject));
     if (saved) return JSON.parse(saved);
   } catch (e) {
     console.error('Failed to load saved progress', e);
@@ -201,20 +472,100 @@ const loadMasteredIds = (): number[] => {
   return [];
 };
 
+const loadSelectedSubject = (): Subject | null => {
+  try {
+    const saved = localStorage.getItem(SUBJECT_STORAGE_KEY);
+    if (saved === 'history' || saved === 'ethics') return saved;
+  } catch (e) {
+    console.error('Failed to load selected subject', e);
+  }
+  return null;
+};
+
 type StatusFilter = 'all' | 'unlearned' | 'learned';
 
-export default function HistoryStudyApp() {
-  const [questions, setQuestions] = useState(rawData);
+// --- 教科選択画面 ---
+function SubjectSelector({ onSelect }: { onSelect: (subject: Subject) => void }) {
+  return (
+    <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
+      <div className="max-w-md w-full">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <BookOpen className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Kioku</h1>
+          <p className="text-zinc-400 text-sm">学習する教科を選択してください</p>
+        </div>
+
+        <div className="space-y-3">
+          <button
+            onClick={() => onSelect('history')}
+            className="w-full p-5 bg-zinc-800 rounded-xl border border-zinc-700 hover:border-amber-500/50 hover:bg-zinc-800/80 transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
+                <History className="w-6 h-6 text-amber-400" />
+              </div>
+              <div className="text-left">
+                <h2 className="text-lg font-semibold text-white">歴史</h2>
+                <p className="text-sm text-zinc-400">{historyData.length} 問</p>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => onSelect('ethics')}
+            className="w-full p-5 bg-zinc-800 rounded-xl border border-zinc-700 hover:border-purple-500/50 hover:bg-zinc-800/80 transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
+                <Brain className="w-6 h-6 text-purple-400" />
+              </div>
+              <div className="text-left">
+                <h2 className="text-lg font-semibold text-white">倫理</h2>
+                <p className="text-sm text-zinc-400">{ethicsData.length} 問</p>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function KiokuApp() {
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(loadSelectedSubject);
+  const [questions, setQuestions] = useState(historyData);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [masteredIds, setMasteredIds] = useState<number[]>(loadMasteredIds);
+  const [masteredIds, setMasteredIds] = useState<number[]>([]);
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [showList, setShowList] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+
+  const rawData = selectedSubject === 'history' ? historyData : ethicsData;
+
+  // 教科変更時にデータを更新
+  useEffect(() => {
+    if (selectedSubject) {
+      const newData = selectedSubject === 'history' ? historyData : ethicsData;
+      setQuestions(newData);
+      setMasteredIds(loadMasteredIds(selectedSubject));
+      setCurrentIndex(0);
+      setFilterCategory('All');
+      setStatusFilter('all');
+      setIsFlipped(false);
+      localStorage.setItem(SUBJECT_STORAGE_KEY, selectedSubject);
+    }
+  }, [selectedSubject]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(masteredIds));
-  }, [masteredIds]);
+    if (selectedSubject) {
+      localStorage.setItem(getStorageKey(selectedSubject), JSON.stringify(masteredIds));
+    }
+  }, [masteredIds, selectedSubject]);
 
   const filteredQuestions = useMemo(() => {
     let filtered = questions;
@@ -229,12 +580,34 @@ export default function HistoryStudyApp() {
     return filtered;
   }, [questions, filterCategory, statusFilter, masteredIds]);
 
+  // currentIndexが範囲外になったら調整
+  useEffect(() => {
+    if (filteredQuestions.length > 0 && currentIndex >= filteredQuestions.length) {
+      setCurrentIndex(0);
+    }
+  }, [filteredQuestions.length, currentIndex]);
+
+  const handleSelectSubject = (subject: Subject) => {
+    setSelectedSubject(subject);
+  };
+
+  const handleChangeSubject = () => {
+    setSelectedSubject(null);
+    localStorage.removeItem(SUBJECT_STORAGE_KEY);
+  };
+
+  // 教科選択画面を表示
+  if (!selectedSubject) {
+    return <SubjectSelector onSelect={handleSelectSubject} />;
+  }
+
   const currentQuestion = filteredQuestions[currentIndex];
   const progressPercentage = Math.round((masteredIds.length / rawData.length) * 100);
   const unlearnedCount = rawData.length - masteredIds.length;
   const learnedCount = masteredIds.length;
 
   const handleNext = () => {
+    if (filteredQuestions.length === 0) return;
     setIsFlipped(false);
     setTimeout(() => {
       setCurrentIndex((prev) => (prev + 1) % filteredQuestions.length);
@@ -242,6 +615,7 @@ export default function HistoryStudyApp() {
   };
 
   const handlePrev = () => {
+    if (filteredQuestions.length === 0) return;
     setIsFlipped(false);
     setTimeout(() => {
       setCurrentIndex((prev) => (prev - 1 + filteredQuestions.length) % filteredQuestions.length);
@@ -253,22 +627,44 @@ export default function HistoryStudyApp() {
   };
 
   const markAsLearned = () => {
-    if (currentQuestion && !masteredIds.includes(currentQuestion.id)) {
-      setMasteredIds(prev => [...prev, currentQuestion.id]);
+    if (!currentQuestion) return;
+
+    // 答えが表示されていない場合、先に表示してから次へ
+    if (!isFlipped) {
+      setIsFlipped(true);
+      setTimeout(() => {
+        if (!masteredIds.includes(currentQuestion.id)) {
+          setMasteredIds(prev => [...prev, currentQuestion.id]);
+        }
+        handleNext();
+      }, 600);
+    } else {
+      if (!masteredIds.includes(currentQuestion.id)) {
+        setMasteredIds(prev => [...prev, currentQuestion.id]);
+      }
+      handleNext();
     }
-    handleNext();
   };
 
   const markAsUnlearned = () => {
-    if (currentQuestion && masteredIds.includes(currentQuestion.id)) {
-      setMasteredIds(prev => prev.filter(mid => mid !== currentQuestion.id));
-    }
-    handleNext();
-  };
+    if (!currentQuestion) return;
 
-  // スワイプ処理
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [swipeOffset, setSwipeOffset] = useState(0);
+    // 答えが表示されていない場合、先に表示してから次へ
+    if (!isFlipped) {
+      setIsFlipped(true);
+      setTimeout(() => {
+        if (masteredIds.includes(currentQuestion.id)) {
+          setMasteredIds(prev => prev.filter(mid => mid !== currentQuestion.id));
+        }
+        handleNext();
+      }, 600);
+    } else {
+      if (masteredIds.includes(currentQuestion.id)) {
+        setMasteredIds(prev => prev.filter(mid => mid !== currentQuestion.id));
+      }
+      handleNext();
+    }
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
@@ -305,12 +701,14 @@ export default function HistoryStudyApp() {
     setIsFlipped(false);
   };
 
-  // 完了画面
-  if (!currentQuestion && filteredQuestions.length === 0) {
+  // 完了画面（問題がない場合）
+  if (filteredQuestions.length === 0 || !currentQuestion) {
     return (
       <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
         <div className="text-center p-6 bg-zinc-800 rounded-xl border border-zinc-700 max-w-sm w-full">
-          <div className="w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
+            selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'
+          }`}>
             <Trophy className="w-7 h-7 text-white" />
           </div>
           <h2 className="text-xl font-bold text-white mb-2">
@@ -319,12 +717,20 @@ export default function HistoryStudyApp() {
           <p className="text-sm text-zinc-400 mb-5">
             {statusFilter === 'unlearned' ? '全ての問題を覚えました！' : 'このカテゴリの問題はありません。'}
           </p>
-          <button
-            onClick={() => { setFilterCategory('All'); setStatusFilter('all'); }}
-            className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
-          >
-            全問題に戻る
-          </button>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => { setFilterCategory('All'); setStatusFilter('all'); }}
+              className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
+            >
+              全問題に戻る
+            </button>
+            <button
+              onClick={handleChangeSubject}
+              className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
+            >
+              教科変更
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -337,10 +743,23 @@ export default function HistoryStudyApp() {
         <div className="max-w-5xl mx-auto px-3 py-2">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-indigo-500 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
+              <button
+                onClick={handleChangeSubject}
+                className="w-7 h-7 bg-zinc-700 rounded-lg flex items-center justify-center hover:bg-zinc-600 transition-colors"
+                title="教科を変更"
+              >
+                <ArrowLeft className="w-4 h-4 text-zinc-300" />
+              </button>
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'}`}>
+                {selectedSubject === 'history' ? (
+                  <History className="w-4 h-4 text-white" />
+                ) : (
+                  <Brain className="w-4 h-4 text-white" />
+                )}
               </div>
-              <h1 className="font-semibold text-sm text-white">Kioku</h1>
+              <h1 className="font-semibold text-sm text-white">
+                {selectedSubject === 'history' ? '歴史' : '倫理'}
+              </h1>
             </div>
 
             {/* 進捗 */}
@@ -348,7 +767,7 @@ export default function HistoryStudyApp() {
               <span className="text-xs text-zinc-400 hidden sm:inline">{masteredIds.length}/{rawData.length}</span>
               <div className="w-20 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-emerald-500 transition-all duration-300"
+                  className={`h-full transition-all duration-300 ${selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'}`}
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
@@ -423,10 +842,10 @@ export default function HistoryStudyApp() {
             <select
               value={filterCategory}
               onChange={(e) => handleCategoryChange(e.target.value)}
-              className="ml-auto px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-300 text-xs font-medium border-none outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+              className={`ml-auto px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-300 text-xs font-medium border-none outline-none focus:ring-1 cursor-pointer ${selectedSubject === 'history' ? 'focus:ring-amber-500' : 'focus:ring-purple-500'}`}
             >
               <option value="All" className="bg-zinc-800">全範囲 ({rawData.length})</option>
-              {getUniqueCategories(rawData).map(cat => (
+              {getUniqueCategories(rawData, selectedSubject).map(cat => (
                 <option key={cat} value={cat} className="bg-zinc-800">{cat}</option>
               ))}
             </select>
@@ -441,8 +860,11 @@ export default function HistoryStudyApp() {
             {filteredQuestions.map((q) => (
               <div
                 key={q.id}
-                className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${masteredIds.includes(q.id) ? 'border-emerald-500/40' : 'border-zinc-700/50 hover:border-zinc-600'
-                  }`}
+                className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${
+                  masteredIds.includes(q.id)
+                    ? (selectedSubject === 'history' ? 'border-amber-500/40' : 'border-purple-500/40')
+                    : 'border-zinc-700/50 hover:border-zinc-600'
+                }`}
               >
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-[10px] font-medium text-zinc-500 bg-zinc-700/50 px-1.5 py-0.5 rounded">
@@ -450,15 +872,19 @@ export default function HistoryStudyApp() {
                   </span>
                   <button onClick={() => toggleMastered(q.id)} className="p-0.5">
                     {masteredIds.includes(q.id) ? (
-                      <CheckCircle className="w-4 h-4 text-emerald-400" />
+                      <CheckCircle className={`w-4 h-4 ${selectedSubject === 'history' ? 'text-amber-400' : 'text-purple-400'}`} />
                     ) : (
                       <div className="w-4 h-4 rounded-full border border-zinc-600" />
                     )}
                   </button>
                 </div>
                 <p className="text-xs text-zinc-300 mb-2.5 leading-relaxed">{q.question}</p>
-                <div className="bg-indigo-500/10 px-2.5 py-1.5 rounded border border-indigo-500/20">
-                  <span className="text-indigo-300 font-medium text-xs">{q.answer}</span>
+                <div className={`px-2.5 py-1.5 rounded border ${
+                  selectedSubject === 'history'
+                    ? 'bg-amber-500/10 border-amber-500/20'
+                    : 'bg-purple-500/10 border-purple-500/20'
+                }`}>
+                  <span className={`font-medium text-xs ${selectedSubject === 'history' ? 'text-amber-300' : 'text-purple-300'}`}>{q.answer}</span>
                 </div>
               </div>
             ))}
@@ -496,7 +922,9 @@ export default function HistoryStudyApp() {
                     {currentQuestion.category}
                   </span>
                   {masteredIds.includes(currentQuestion.id) && (
-                    <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-400">
+                    <span className={`flex items-center gap-1 text-[10px] font-medium ${
+                      selectedSubject === 'history' ? 'text-amber-400' : 'text-purple-400'
+                    }`}>
                       <CheckCircle size={10} /> 習得済み
                     </span>
                   )}
@@ -549,7 +977,9 @@ export default function HistoryStudyApp() {
               </button>
               <button
                 onClick={markAsLearned}
-                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-500 transition-colors"
+                className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-white text-xs font-medium transition-colors ${
+                  selectedSubject === 'history' ? 'bg-amber-600 hover:bg-amber-500' : 'bg-purple-600 hover:bg-purple-500'
+                }`}
               >
                 覚えた
                 <ChevronRight size={14} />
@@ -571,7 +1001,10 @@ export default function HistoryStudyApp() {
                   return (
                     <div
                       key={idx}
-                      className={`h-1 rounded-full transition-all ${idx === currentIndex ? 'bg-indigo-400 w-4' : 'bg-zinc-700 w-1'}`}
+                      className={`h-1 rounded-full transition-all ${idx === currentIndex
+                        ? (selectedSubject === 'history' ? 'bg-amber-400 w-4' : 'bg-purple-400 w-4')
+                        : 'bg-zinc-700 w-1'
+                      }`}
                     />
                   );
                 })}
@@ -579,7 +1012,9 @@ export default function HistoryStudyApp() {
 
               <button
                 onClick={handleNext}
-                className="p-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+                className={`p-2 rounded-lg text-white transition-colors ${
+                  selectedSubject === 'history' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-purple-500 hover:bg-purple-600'
+                }`}
               >
                 <ChevronRight size={18} />
               </button>
