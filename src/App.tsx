@@ -3,6 +3,9 @@ import { BookOpen, CheckCircle, RotateCcw, Trophy, ChevronRight, ChevronLeft, Ma
 
 // --- データ定義 ---
 const rawData = [
+  // === 追加箇所：1925年の記述 ===
+  { id: 100, category: "ナチスの台頭", question: "1925年に創設された、ヒトラー個人を守る忠実な武装集団、ナチス（　？　）。", answer: "親衛隊(SS)" },
+  // === 第1弾データ（ナチス・日中戦争・満州事変） ===
   { id: 101, category: "ナチスの台頭", question: "1929年の世界恐慌後、ナチスと共に議席を伸ばした政党は？", answer: "共産党" },
   { id: 102, category: "ナチスの台頭", question: "ヒトラーはユダヤ人を諸悪の根源とすることで、大衆に不満の掃け口を与えた。「すべての問題の原因は（　？　）」。", answer: "ユダヤ人にあり" },
   { id: 103, category: "ナチスの台頭", question: "共産党の勢力拡大を恐れ、ナチス支持に回った層は？（2つ）", answer: "資本家・地主" },
@@ -77,6 +80,7 @@ const rawData = [
   { id: 908, category: "第二次世界大戦", question: "ロンドンに亡命し、対独徹底抗戦（レジスタンス）を呼びかけたフランスの将軍は？", answer: "ド＝ゴール" },
   { id: 909, category: "第二次世界大戦", question: "フランス降伏後、対独徹底抗戦を主張したイギリス首相は？", answer: "チャーチル" },
   { id: 910, category: "第二次世界大戦", question: "ドイツ空軍によるイギリス本土への激しい空爆戦を何という？", answer: "バトル・オブ・ブリテン" },
+  // === 第2弾 データ（独ソ戦・太平洋戦争・終戦） ===
   { id: 1001, category: "独ソ戦", question: "1940年に日本も加わり、（　？　）が締結される。", answer: "日独伊三国同盟" },
   { id: 1002, category: "独ソ戦", question: "イタリア軍の失態＝（　？　）、（　？　）でイタリア軍は攻勢をかけるが反撃にあう。", answer: "リビア、ギリシア" },
   { id: 1003, category: "独ソ戦", question: "独ソが対立したきっかけは、（　？　）の利権を巡るものだった。", answer: "バルカン半島" },
@@ -118,6 +122,8 @@ const rawData = [
   { id: 1409, category: "敗戦への道", question: "1945年8月、日ソ中立条約を無視して（　？　）が参戦した。", answer: "ソ連" },
   { id: 1501, category: "戦争の被害・戦後", question: "ナチスはユダヤ人らを（　？　）をはじめとする強制収容所で虐殺した。", answer: "アウシュヴィッツ" },
   { id: 1502, category: "戦争の被害・戦後", question: "アジアの労働者や捕虜を強制労働させて建設された鉄道は（　？　）鉄道。", answer: "泰緬（たいめん）" },
+  // === 第3弾 データ（地図問題・冷戦・現代史） ===
+  // 太平洋戦争（地図）
   { id: 1601, category: "太平洋戦争（地図・まとめ）", question: "1941年12月8日、日本軍が奇襲攻撃を行ったハワイの場所（地図a）は？", answer: "真珠湾" },
   { id: 1602, category: "太平洋戦争（地図・まとめ）", question: "1942年、日本軍が主力空母4隻を喪失した海戦の場所（地図b）は？", answer: "ミッドウェー" },
   { id: 1603, category: "太平洋戦争（地図・まとめ）", question: "1942-43年、日本軍がアメリカ軍と死闘を繰り広げ、撤退した場所（地図c）は？", answer: "ガダルカナル" },
@@ -129,10 +135,12 @@ const rawData = [
   { id: 1609, category: "太平洋戦争（地図・まとめ）", question: "日米開戦時の日本の首相の名前は？", answer: "東条英機" },
   { id: 1610, category: "太平洋戦争（地図・まとめ）", question: "1944年にサイパン近辺で行われ、日本の惨敗に終わった海戦名は？", answer: "マリアナ沖海戦" },
   { id: 1611, category: "太平洋戦争（地図・まとめ）", question: "ソ連の対日参戦の対価として、ソ連に帰属することになった地域（二つ）は？", answer: "南樺太、千島列島" },
+  // 冷戦の終結
   { id: 1701, category: "冷戦の終結", question: "情報公開を進める契機となった、ソ連での原発事故の名称は？", answer: "チェルノブイリ原発事故" },
   { id: 1702, category: "冷戦の終結", question: "1989年、冷戦終結宣言が出された会談の名前は？", answer: "マルタ会談" },
   { id: 1703, category: "冷戦の終結", question: "ソ連のゴルバチョフが掲げた改革路線、「建て直し」をロシア語でなんと呼ぶか？", answer: "ペレストロイカ" },
   { id: 1704, category: "冷戦の終結", question: "ソ連のゴルバチョフが掲げた改革路線、「情報公開」をロシア語でなんと呼ぶか？", answer: "グラスノスチ" },
+  // 戦後の欧州・アメリカ
   { id: 1801, category: "戦後の欧州", question: "1975年第一回先進国首脳会議（G7サミット）に参加した国をすべて答えよ。", answer: "米、英、仏、カナダ、西ドイツ、伊、日本" },
   { id: 1802, category: "戦後の欧州", question: "EC（欧州共同体）からEU（欧州連合）への改組を実現した条約の名前は？", answer: "マーストリヒト条約" },
   { id: 1803, category: "戦後の欧州", question: "EU圏内の人の移動の自由化を実現した協定の名前は？", answer: "シェンゲン協定" },
@@ -144,6 +152,7 @@ const rawData = [
   { id: 1809, category: "戦後のアメリカ", question: "2009年に当選した、アメリカ初の黒人大統領の名前は？", answer: "オバマ" },
   { id: 1810, category: "戦後のアメリカ", question: "トランプ大統領（第45代）が所属する政党の名前は？", answer: "共和党" },
   { id: 1811, category: "戦後のアメリカ", question: "バイデン大統領（第46代）が所属する政党の名前は？", answer: "民主党" },
+  // 戦後の日本
   { id: 1901, category: "戦後の日本", question: "1951年、日本が主権を回復した条約の名前は？", answer: "サンフランシスコ平和条約" },
   { id: 1902, category: "戦後の日本", question: "「所得倍増」をスローガンとして、経済成長政策を進めた首相の名前は？", answer: "池田勇人" },
   { id: 1903, category: "戦後の日本", question: "1970年に成立した、沖縄の日本復帰を定めた協定の名前は？", answer: "沖縄返還協定" },
@@ -243,6 +252,46 @@ export default function HistoryStudyApp() {
     setMasteredIds(prev => prev.includes(id) ? prev.filter(mid => mid !== id) : [...prev, id]);
   };
 
+  const markAsLearned = () => {
+    if (currentQuestion && !masteredIds.includes(currentQuestion.id)) {
+      setMasteredIds(prev => [...prev, currentQuestion.id]);
+    }
+    handleNext();
+  };
+
+  const markAsUnlearned = () => {
+    if (currentQuestion && masteredIds.includes(currentQuestion.id)) {
+      setMasteredIds(prev => prev.filter(mid => mid !== currentQuestion.id));
+    }
+    handleNext();
+  };
+
+  // スワイプ処理
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    const diff = e.touches[0].clientX - touchStart;
+    setSwipeOffset(Math.max(-100, Math.min(100, diff)));
+  };
+
+  const handleTouchEnd = () => {
+    if (Math.abs(swipeOffset) > 60) {
+      if (swipeOffset > 0) {
+        markAsLearned();
+      } else {
+        markAsUnlearned();
+      }
+    }
+    setTouchStart(null);
+    setSwipeOffset(0);
+  };
+
   const handleCategoryChange = (cat: string) => {
     setFilterCategory(cat);
     setCurrentIndex(0);
@@ -335,25 +384,22 @@ export default function HistoryStudyApp() {
             <div className="flex bg-zinc-700/50 rounded-lg p-0.5">
               <button
                 onClick={() => { setStatusFilter('all'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                  statusFilter === 'all' ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'
-                }`}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'all' ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'
+                  }`}
               >
                 全て
               </button>
               <button
                 onClick={() => { setStatusFilter('unlearned'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                  statusFilter === 'unlearned' ? 'bg-amber-500 text-white' : 'text-zinc-400 hover:text-white'
-                }`}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'unlearned' ? 'bg-amber-500 text-white' : 'text-zinc-400 hover:text-white'
+                  }`}
               >
                 未習得 ({unlearnedCount})
               </button>
               <button
                 onClick={() => { setStatusFilter('learned'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                  statusFilter === 'learned' ? 'bg-emerald-500 text-white' : 'text-zinc-400 hover:text-white'
-                }`}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'learned' ? 'bg-emerald-500 text-white' : 'text-zinc-400 hover:text-white'
+                  }`}
               >
                 習得済 ({learnedCount})
               </button>
@@ -395,9 +441,8 @@ export default function HistoryStudyApp() {
             {filteredQuestions.map((q) => (
               <div
                 key={q.id}
-                className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${
-                  masteredIds.includes(q.id) ? 'border-emerald-500/40' : 'border-zinc-700/50 hover:border-zinc-600'
-                }`}
+                className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${masteredIds.includes(q.id) ? 'border-emerald-500/40' : 'border-zinc-700/50 hover:border-zinc-600'
+                  }`}
               >
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-[10px] font-medium text-zinc-500 bg-zinc-700/50 px-1.5 py-0.5 rounded">
@@ -424,15 +469,30 @@ export default function HistoryStudyApp() {
               {currentIndex + 1} / {filteredQuestions.length}
             </span>
 
+            {/* スワイプヒント */}
+            <div className="flex justify-between w-full max-w-lg px-2 mb-2">
+              <span className={`text-[10px] transition-opacity ${swipeOffset < -20 ? 'text-amber-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>← 覚えてない</span>
+              <span className={`text-[10px] transition-opacity ${swipeOffset > 20 ? 'text-emerald-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>覚えた →</span>
+            </div>
+
             <div
-              className="w-full max-w-lg cursor-pointer"
+              className="w-full max-w-lg cursor-pointer select-none"
               onClick={() => setIsFlipped(!isFlipped)}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{
+                transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)`,
+                transition: touchStart ? 'none' : 'transform 0.2s ease-out'
+              }}
             >
-              <div className="bg-zinc-800 rounded-xl border border-zinc-700/50 overflow-hidden">
+              <div className={`bg-zinc-800 rounded-xl border overflow-hidden transition-colors ${
+                swipeOffset > 30 ? 'border-emerald-500/50' : swipeOffset < -30 ? 'border-amber-500/50' : 'border-zinc-700/50'
+              }`}>
                 <div className="px-4 py-2.5 border-b border-zinc-700/50 flex justify-between items-center">
                   <span className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-500">
-                    {currentQuestion.category.includes('地図') && <MapPin size={10} className="text-rose-400"/>}
-                    {currentQuestion.category.includes('世界') && <Globe size={10} className="text-sky-400"/>}
+                    {currentQuestion.category.includes('地図') && <MapPin size={10} className="text-rose-400" />}
+                    {currentQuestion.category.includes('世界') && <Globe size={10} className="text-sky-400" />}
                     {currentQuestion.category}
                   </span>
                   {masteredIds.includes(currentQuestion.id) && (
@@ -442,17 +502,16 @@ export default function HistoryStudyApp() {
                   )}
                 </div>
 
-                <div className="p-5 min-h-[200px] flex flex-col justify-center">
+                <div className="p-5 min-h-[180px] flex flex-col justify-center">
                   <p className="text-sm md:text-base text-zinc-200 text-center leading-relaxed">
                     {currentQuestion.question.split('（　？　）').map((part, i, arr) => (
                       <React.Fragment key={i}>
                         {part}
                         {i < arr.length - 1 && (
-                          <span className={`inline-block mx-0.5 px-2 py-0.5 rounded font-semibold transition-all ${
-                            isFlipped
-                              ? 'text-indigo-300 bg-indigo-500/20'
-                              : 'text-transparent bg-zinc-700 min-w-[3em]'
-                          }`}>
+                          <span className={`inline-block mx-0.5 px-2 py-0.5 rounded font-semibold transition-all ${isFlipped
+                            ? 'text-indigo-300 bg-indigo-500/20'
+                            : 'text-transparent bg-zinc-700 min-w-[3em]'
+                            }`}>
                             {isFlipped ? currentQuestion.answer : '???'}
                           </span>
                         )}
@@ -461,9 +520,8 @@ export default function HistoryStudyApp() {
                   </p>
 
                   {!currentQuestion.question.includes('（　？　）') && (
-                    <div className={`mt-5 w-full p-3 rounded-lg text-center transition-all ${
-                      isFlipped ? 'bg-indigo-500/10 border border-indigo-500/20' : 'bg-zinc-700/30'
-                    }`}>
+                    <div className={`mt-4 w-full p-3 rounded-lg text-center transition-all ${isFlipped ? 'bg-indigo-500/10 border border-indigo-500/20' : 'bg-zinc-700/30'
+                      }`}>
                       <span className="text-[10px] text-zinc-500 block mb-1">
                         {isFlipped ? 'ANSWER' : 'TAP TO REVEAL'}
                       </span>
@@ -474,26 +532,28 @@ export default function HistoryStudyApp() {
                   )}
 
                   {!isFlipped && (
-                    <p className="text-center text-zinc-600 text-[10px] mt-4">タップして答えを表示</p>
+                    <p className="text-center text-zinc-600 text-[10px] mt-3">タップして答えを表示</p>
                   )}
                 </div>
-
-                {isFlipped && (
-                  <div className="px-4 py-3 border-t border-zinc-700/50 flex justify-center">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); toggleMastered(currentQuestion.id); }}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
-                        masteredIds.includes(currentQuestion.id)
-                          ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600'
-                          : 'bg-emerald-500 text-white hover:bg-emerald-600'
-                      }`}
-                    >
-                      <CheckCircle size={14} />
-                      {masteredIds.includes(currentQuestion.id) ? '未習得に戻す' : '覚えた！'}
-                    </button>
-                  </div>
-                )}
               </div>
+            </div>
+
+            {/* アクションボタン - 常に表示 */}
+            <div className="flex gap-3 mt-4 w-full max-w-lg">
+              <button
+                onClick={markAsUnlearned}
+                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-amber-400 text-xs font-medium hover:bg-zinc-700 transition-colors"
+              >
+                <ChevronLeft size={14} />
+                覚えてない
+              </button>
+              <button
+                onClick={markAsLearned}
+                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-500 transition-colors"
+              >
+                覚えた
+                <ChevronRight size={14} />
+              </button>
             </div>
 
             <div className="flex items-center gap-4 mt-5">
