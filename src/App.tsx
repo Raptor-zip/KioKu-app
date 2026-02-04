@@ -1,0 +1,508 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { BookOpen, CheckCircle, RotateCcw, Trophy, ChevronRight, ChevronLeft, MapPin, Globe, RefreshCw, List, Layers } from 'lucide-react';
+
+// --- データ定義 ---
+const rawData = [
+  { id: 101, category: "ナチスの台頭", question: "1929年の世界恐慌後、ナチスと共に議席を伸ばした政党は？", answer: "共産党" },
+  { id: 102, category: "ナチスの台頭", question: "ヒトラーはユダヤ人を諸悪の根源とすることで、大衆に不満の掃け口を与えた。「すべての問題の原因は（　？　）」。", answer: "ユダヤ人にあり" },
+  { id: 103, category: "ナチスの台頭", question: "共産党の勢力拡大を恐れ、ナチス支持に回った層は？（2つ）", answer: "資本家・地主" },
+  { id: 104, category: "ナチスの台頭", question: "強国ドイツの復活と軍拡を目指すナチスを支持した勢力は？", answer: "軍部" },
+  { id: 105, category: "ナチスの台頭", question: "ヒトラー内閣が、ライバルの共産党を解散に追い込むために利用した事件は？", answer: "国会議事堂放火事件" },
+  { id: 106, category: "ナチスの台頭", question: "ナチスの一党独裁体制を確立した法律は？", answer: "全権委任法" },
+  { id: 107, category: "ナチスの台頭", question: "1934年にヒトラーが就任した地位は？", answer: "総統（フューラー）" },
+  { id: 108, category: "ナチスの内政", question: "計画経済による経済再建と軍備強化を目指した計画は？", answer: "4か年計画" },
+  { id: 109, category: "ナチスの内政", question: "ユダヤ人迫害・差別を法制化した法律は（　？　）法。", answer: "ニュルンベルク" },
+  { id: 110, category: "ナチスの内政", question: "反体制派を弾圧した秘密警察の名称は？", answer: "ゲシュタポ" },
+  { id: 111, category: "ナチスの内政", question: "遺伝病を持つ人に対する強制断種措置などを定めた法律は？", answer: "断種法" },
+  { id: 112, category: "ナチスの内政", question: "「健全な国民」の育成のため、（　？　）という考え方がとられた。", answer: "劣ったものを科学的に選抜して排除" },
+  { id: 113, category: "ナチスの内政", question: "宣伝活動に有効活用されたメディアは？", answer: "ラジオ" },
+  { id: 114, category: "ナチスの内政", question: "ナチスの青少年組織は？", answer: "ヒトラーユーゲント" },
+  { id: 201, category: "ドイツ情勢", question: "第一次世界大戦後に成立したドイツの共和国は？", answer: "ヴェイマル共和国" },
+  { id: 202, category: "ドイツ情勢", question: "ドイツ革命後に政権を取った政党は？", answer: "社会民主党" },
+  { id: 203, category: "ドイツ情勢", question: "ヴァイマル憲法制定時の大統領は？", answer: "エーベルト" },
+  { id: 204, category: "ドイツ情勢", question: "協調外交路線をとり、ロカルノ条約などを締結した外相は？", answer: "シュトレーゼマン" },
+  { id: 205, category: "ヒトラーの経歴", question: "ナチスの正式名称は？", answer: "国民社会主義ドイツ労働者党" },
+  { id: 206, category: "ヒトラーの経歴", question: "ナチスの私兵集団（SA）の名称は？", answer: "突撃隊" },
+  { id: 207, category: "ヒトラーの経歴", question: "1923年、ムッソリーニを真似て武力による政権転覆を企て失敗した事件は？", answer: "ミュンヘン一揆" },
+  { id: 208, category: "ヒトラーの経歴", question: "ヒトラーが獄中で執筆した著書は？", answer: "わが闘争" },
+  { id: 301, category: "ナチスの内政", question: "スポーツの政治利用として開催されたイベントは？", answer: "ベルリンオリンピック" },
+  { id: 302, category: "ナチスの内政", question: "労働者にも提供された自家用車の名称は？", answer: "フォルクスワーゲン" },
+  { id: 401, category: "日中戦争前夜", question: "1936年に起きた、皇道派の青年将校によるクーデタ未遂事件は？", answer: "二・二六事件" },
+  { id: 402, category: "中国情勢", question: "瑞金を追われた中国共産党が行った大移動を何という？", answer: "長征" },
+  { id: 403, category: "中国情勢", question: "長征の末に共産党が拠点を移した場所は？", answer: "延安" },
+  { id: 404, category: "中国情勢", question: "1935年、共産党が国民党に対して抗日民族統一戦線を呼びかけた宣言は？", answer: "八・一宣言" },
+  { id: 405, category: "中国情勢", question: "1936年、蒋介石が監禁され、共産党との内戦停止を迫られた事件は？", answer: "西安事件" },
+  { id: 406, category: "中国情勢", question: "西安事件で蒋介石を監禁した人物は？", answer: "張学良" },
+  { id: 407, category: "日中戦争", question: "1937年7月、日中戦争の発端となった事件は？", answer: "盧溝橋事件" },
+  { id: 501, category: "満州事変", question: "1932年の五・一五事件で暗殺された首相は？", answer: "犬養毅" },
+  { id: 502, category: "満州事変", question: "1932年、日本が満州国を正式承認した際に結んだ条約は？", answer: "日満議定書" },
+  { id: 503, category: "満州事変", question: "国際連盟が満州事変の調査のために派遣したのは？", answer: "リットン調査団" },
+  { id: 504, category: "満州事変", question: "リットン報告書が求めた、中国側の行動の停止とは？", answer: "対日ボイコット" },
+  { id: 505, category: "満州事変", question: "国際連盟脱退時の日本全権は？", answer: "松岡洋右" },
+  { id: 601, category: "満州事変", question: "長春・大連間の鉄道を管理していた会社は？", answer: "南満州鉄道株式会社（満鉄）" },
+  { id: 602, category: "満州事変", question: "関東州と満鉄の保護のために設置された軍隊は？", answer: "関東軍" },
+  { id: 603, category: "満州事変", question: "関東軍が担うようになった、鉄道守備以外の役割は？", answer: "対ソ連戦略" },
+  { id: 604, category: "満州事変", question: "日本の経済危機克服などのために中国東北部を日本領とすべきという議論は？", answer: "満蒙領有論" },
+  { id: 605, category: "満州事変", question: "1931年9月18日、関東軍が爆破した線路の場所は？", answer: "柳条湖" },
+  { id: 606, category: "満州事変", question: "柳条湖事件の犯人とされた軍閥の人物は？", answer: "張学良" },
+  { id: 607, category: "満州事変", question: "満州事変当時、不拡大方針をとった立憲民政党の内閣は？", answer: "若槻礼次郎内閣" },
+  { id: 608, category: "満州事変", question: "1932年に建国された満州国の執政（のち皇帝）となった人物は？", answer: "溥儀" },
+  { id: 609, category: "満州事変", question: "満州国の首都は？", answer: "新京" },
+  { id: 610, category: "日本国内", question: "政党や財閥を倒し、軍部独裁などによる国家改造を目指す思想（スローガン）は？", answer: "昭和維新" },
+  { id: 701, category: "ヒトラーの拡張", question: "イギリスが当初ドイツの再軍備を認めた理由は、ドイツを（　？　）として利用するため。", answer: "ソ連に対する防壁" },
+  { id: 702, category: "ヒトラーの拡張", question: "1936年、ヒトラーがロカルノ条約を破棄して軍を進めた地域は？", answer: "ラインラント（進駐）" },
+  { id: 703, category: "ヒトラーの拡張", question: "1938年、ドイツが併合した国は？", answer: "オーストリア" },
+  { id: 704, category: "ヒトラーの拡張", question: "1938年、ドイツが割譲を要求したチェコスロヴァキアの地方は？", answer: "ズデーテン地方" },
+  { id: 705, category: "ヒトラーの拡張", question: "ズデーテン危機に際し、戦争回避のためにイギリスのチェンバレン首相らがとった政策は？", answer: "宥和政策" },
+  { id: 706, category: "ヒトラーの拡張", question: "1938年、ズデーテン問題解決のために開かれた会談は？", answer: "ミュンヘン会談" },
+  { id: 707, category: "ヒトラーの拡張", question: "ミュンヘン会談に参加した4カ国はドイツとどこ？", answer: "イギリス・フランス・イタリア" },
+  { id: 708, category: "ヒトラーの拡張", question: "ミュンヘン会談の仲介を行ったイタリアの首相は？", answer: "ムッソリーニ" },
+  { id: 709, category: "ヒトラーの拡張", question: "ミュンヘン会談に招待されず、英仏との関係が悪化した国は？", answer: "ソ連" },
+  { id: 710, category: "ヒトラーの拡張", question: "1939年、ヒトラーがミュンヘン会談の約束を破って行った行動は？", answer: "チェコ占領（スロヴァキア保護国化）" },
+  { id: 711, category: "ヒトラーの拡張", question: "1939年、犬猿の仲だった独ソが手を結んだ条約は？", answer: "独ソ不可侵条約" },
+  { id: 801, category: "日中戦争", question: "1937年9月、抗日民族統一戦線が成立したことを何という？", answer: "第二次国共合作" },
+  { id: 802, category: "日中戦争", question: "日本軍が目指し、占領後に大虐殺が起きたとされる国民政府の首都は？", answer: "南京" },
+  { id: 803, category: "日中戦争", question: "南京陥落後、国民政府が首都を移して抵抗を続けた場所は？", answer: "重慶" },
+  { id: 804, category: "日中戦争", question: "1938年、近衛文麿内閣が出した声明は？", answer: "東亜新秩序" },
+  { id: 805, category: "日中戦争", question: "日本が中国に樹立した親日傀儡政権のトップは？", answer: "汪兆銘" },
+  { id: 806, category: "戦時体制", question: "1938年、政府による物資の統制などを定めた法律は？", answer: "国家総動員法" },
+  { id: 807, category: "戦時体制", question: "1935年、ヒトラーが行った軍備拡張の宣言は？", answer: "再軍備宣言" },
+  { id: 901, category: "第二次世界大戦", question: "第二次世界大戦が始まったのは何年？", answer: "1939年" },
+  { id: 902, category: "第二次世界大戦", question: "第二次世界大戦の発端となった、ドイツが侵攻した国は？", answer: "ポーランド" },
+  { id: 903, category: "第二次世界大戦", question: "独ソ不可侵条約に基づき、東からポーランドに侵攻した国は？", answer: "ソ連" },
+  { id: 904, category: "第二次世界大戦", question: "ソ連が侵攻した、エストニア・ラトビア・リトアニアを総称して何という？", answer: "バルト三国" },
+  { id: 905, category: "第二次世界大戦", question: "ソ連が侵攻した北欧の国は？", answer: "フィンランド" },
+  { id: 906, category: "第二次世界大戦", question: "1940年、ドイツに降伏したフランスで成立した、南フランスの親独政権は？", answer: "ヴィシー政府" },
+  { id: 907, category: "第二次世界大戦", question: "ヴィシー政府の首班となった元帥は？", answer: "ペタン" },
+  { id: 908, category: "第二次世界大戦", question: "ロンドンに亡命し、対独徹底抗戦（レジスタンス）を呼びかけたフランスの将軍は？", answer: "ド＝ゴール" },
+  { id: 909, category: "第二次世界大戦", question: "フランス降伏後、対独徹底抗戦を主張したイギリス首相は？", answer: "チャーチル" },
+  { id: 910, category: "第二次世界大戦", question: "ドイツ空軍によるイギリス本土への激しい空爆戦を何という？", answer: "バトル・オブ・ブリテン" },
+  { id: 1001, category: "独ソ戦", question: "1940年に日本も加わり、（　？　）が締結される。", answer: "日独伊三国同盟" },
+  { id: 1002, category: "独ソ戦", question: "イタリア軍の失態＝（　？　）、（　？　）でイタリア軍は攻勢をかけるが反撃にあう。", answer: "リビア、ギリシア" },
+  { id: 1003, category: "独ソ戦", question: "独ソが対立したきっかけは、（　？　）の利権を巡るものだった。", answer: "バルカン半島" },
+  { id: 1004, category: "独ソ戦", question: "1941年にドイツ軍は（　？　）、（　？　）を占領した。", answer: "ユーゴスラビア、ギリシア" },
+  { id: 1005, category: "独ソ戦", question: "1941年6月、ドイツ軍はソ連に奇襲攻撃をかけるが、冬の到来などにより（　？　）占領に失敗。", answer: "モスクワ" },
+  { id: 1006, category: "独ソ戦", question: "1941年12月に（　？　）が参戦し、イギリスと協力してソ連に援助物資を送った。", answer: "アメリカ" },
+  { id: 1007, category: "独ソ戦", question: "1942年（　？　）条約、米ソ相互援助条約の締結。", answer: "英ソ相互援助" },
+  { id: 1008, category: "独ソ戦", question: "1942年「青作戦」でヒトラーはモスクワではなくカフカス地方の油田（　？　）の占領を目指した。", answer: "バクー" },
+  { id: 1009, category: "独ソ戦", question: "1942-43年、第2次世界大戦のターニングポイントとなった戦いは（　？　）の戦い。", answer: "スターリングラード" },
+  { id: 1101, category: "太平洋戦争", question: "1941年から（　？　）を開始するが、対立が深まる。", answer: "日米交渉" },
+  { id: 1102, category: "太平洋戦争", question: "1941年4月に（　？　）を締結する。これがかえってアメリカの不信を買う。", answer: "日ソ中立条約" },
+  { id: 1103, category: "太平洋戦争", question: "日本は資源を確保するために、ドイツに降伏したフランスの植民地（　？　）に進駐する。", answer: "仏領インドシナ" },
+  { id: 1104, category: "太平洋戦争", question: "1941年8月、アメリカは制裁措置として、日本に対する（　？　）の禁輸処置に踏み切る。", answer: "石油" },
+  { id: 1105, category: "太平洋戦争", question: "1941年12月8日、日本軍はハワイの（　？　）を奇襲攻撃し、太平洋戦争が始まった。", answer: "真珠湾" },
+  { id: 1106, category: "太平洋戦争", question: "日本が米英と対立した理由の一つは、中国国民党を支援する「（　？　）」の存在だった。", answer: "援蒋ルート" },
+  { id: 1107, category: "太平洋戦争", question: "開戦後、日本軍はイギリス領（　？　）、（　？　）を攻略した。", answer: "マレー、シンガポール" },
+  { id: 1108, category: "太平洋戦争", question: "日本軍はアメリカ統治下の（　？　）を占領した。", answer: "フィリピン" },
+  { id: 1109, category: "太平洋戦争", question: "日本軍はオランダ領（　？　）を占領し、石油・ゴムなどの資源地帯を確保した。", answer: "東インド" },
+  { id: 1110, category: "戦時下の日本", question: "1940年に（　？　）という理念が提唱された。", answer: "大東亜共栄圏" },
+  { id: 1111, category: "戦時下の日本", question: "「大東亜共栄圏」は、あくまで（　？　（アングロサクソン））からの解放と主張した。", answer: "米英" },
+  { id: 1201, category: "太平洋戦争", question: "1942年、日本軍の主力空母4隻を喪失する大敗北となったのは（　？　）海戦。", answer: "ミッドウェー" },
+  { id: 1202, category: "太平洋戦争", question: "日本軍はソロモン諸島、（　？　）で連合軍と死闘を繰り広げ、消耗戦の末に撤退した。", answer: "ガダルカナル" },
+  { id: 1203, category: "太平洋戦争", question: "ガダルカナル戦などの目的は、アメリカと（　？　）の連絡線切断だった。", answer: "オーストラリア" },
+  { id: 1204, category: "太平洋戦争", question: "1944年、（　？　）海戦でベテランパイロットを失い、日本海軍は壊滅した。", answer: "マリアナ沖" },
+  { id: 1301, category: "欧州戦線の終結", question: "1941年、（　？　）で米・英が枢軸国との対決を決定。", answer: "大西洋憲章" },
+  { id: 1302, category: "欧州戦線の終結", question: "大西洋憲章と同時に（　？　）も決定された。", answer: "対ソ援助" },
+  { id: 1303, category: "欧州戦線の終結", question: "1943年、枢軸国の中で最初に脱落（降伏）したのは（　？　）。", answer: "イタリア" },
+  { id: 1304, category: "欧州戦線の終結", question: "1944年、連合軍による（　？　）上陸作戦（史上最大の作戦）が行われた。", answer: "ノルマンディー" },
+  { id: 1305, category: "欧州戦線の終結", question: "1945年2月、米英ソ首脳による（　？　）会談がソ連で開催された。", answer: "ヤルタ" },
+  { id: 1306, category: "欧州戦線の終結", question: "ヤルタ会談で、（　？　・千島列島）のソ連帰属を条件とする対日参戦が決定された。", answer: "南樺太" },
+  { id: 1401, category: "敗戦への道", question: "1944年、（　？　）の喪失により、日本本土への空爆拠点が作られた。", answer: "サイパン島" },
+  { id: 1402, category: "敗戦への道", question: "アメリカ軍による（　？　）作戦で、日本の海上輸送ルートは壊滅状態になった。", answer: "通商破壊" },
+  { id: 1403, category: "敗戦への道", question: "1945年、（　？　）の戦いでは、栗林忠道のもとで日本軍が粘り強い抵抗を行った。", answer: "硫黄島" },
+  { id: 1404, category: "敗戦への道", question: "1945年、日本本土で唯一の地上戦となったのは（　？　）。", answer: "沖縄戦" },
+  { id: 1405, category: "敗戦への道", question: "1945年春に（　？　）などの無差別爆撃が行われた。", answer: "東京大空襲" },
+  { id: 1406, category: "敗戦への道", question: "1945年8月、広島・長崎に（　？　）が投下される。", answer: "原爆" },
+  { id: 1407, category: "敗戦への道", question: "1945年、（　？　）会談で日本の無条件降伏が要求された。", answer: "ポツダム会談" },
+  { id: 1408, category: "敗戦への道", question: "ポツダム会談時、アメリカ大統領は（　？　）に代わっていた。", answer: "トルーマン" },
+  { id: 1409, category: "敗戦への道", question: "1945年8月、日ソ中立条約を無視して（　？　）が参戦した。", answer: "ソ連" },
+  { id: 1501, category: "戦争の被害・戦後", question: "ナチスはユダヤ人らを（　？　）をはじめとする強制収容所で虐殺した。", answer: "アウシュヴィッツ" },
+  { id: 1502, category: "戦争の被害・戦後", question: "アジアの労働者や捕虜を強制労働させて建設された鉄道は（　？　）鉄道。", answer: "泰緬（たいめん）" },
+  { id: 1601, category: "太平洋戦争（地図・まとめ）", question: "1941年12月8日、日本軍が奇襲攻撃を行ったハワイの場所（地図a）は？", answer: "真珠湾" },
+  { id: 1602, category: "太平洋戦争（地図・まとめ）", question: "1942年、日本軍が主力空母4隻を喪失した海戦の場所（地図b）は？", answer: "ミッドウェー" },
+  { id: 1603, category: "太平洋戦争（地図・まとめ）", question: "1942-43年、日本軍がアメリカ軍と死闘を繰り広げ、撤退した場所（地図c）は？", answer: "ガダルカナル" },
+  { id: 1604, category: "太平洋戦争（地図・まとめ）", question: "1944年に陥落し、日本本土空襲の拠点となった場所（地図d）は？", answer: "サイパン（島）" },
+  { id: 1605, category: "太平洋戦争（地図・まとめ）", question: "1945年の激戦地で、星条旗を掲げる写真でも有名な場所（地図e）は？", answer: "硫黄島" },
+  { id: 1606, category: "太平洋戦争（地図・まとめ）", question: "1945年、多くの民間人が巻き込まれる地上戦が行われた場所（地図f）は？", answer: "沖縄" },
+  { id: 1607, category: "太平洋戦争（地図・まとめ）", question: "日本軍が進駐したフランスの植民地（植民地A）の名称は？", answer: "仏領インドシナ" },
+  { id: 1608, category: "太平洋戦争（地図・まとめ）", question: "日本軍が資源確保のために占領したオランダの植民地（植民地B）の名称は？", answer: "オランダ領東インド" },
+  { id: 1609, category: "太平洋戦争（地図・まとめ）", question: "日米開戦時の日本の首相の名前は？", answer: "東条英機" },
+  { id: 1610, category: "太平洋戦争（地図・まとめ）", question: "1944年にサイパン近辺で行われ、日本の惨敗に終わった海戦名は？", answer: "マリアナ沖海戦" },
+  { id: 1611, category: "太平洋戦争（地図・まとめ）", question: "ソ連の対日参戦の対価として、ソ連に帰属することになった地域（二つ）は？", answer: "南樺太、千島列島" },
+  { id: 1701, category: "冷戦の終結", question: "情報公開を進める契機となった、ソ連での原発事故の名称は？", answer: "チェルノブイリ原発事故" },
+  { id: 1702, category: "冷戦の終結", question: "1989年、冷戦終結宣言が出された会談の名前は？", answer: "マルタ会談" },
+  { id: 1703, category: "冷戦の終結", question: "ソ連のゴルバチョフが掲げた改革路線、「建て直し」をロシア語でなんと呼ぶか？", answer: "ペレストロイカ" },
+  { id: 1704, category: "冷戦の終結", question: "ソ連のゴルバチョフが掲げた改革路線、「情報公開」をロシア語でなんと呼ぶか？", answer: "グラスノスチ" },
+  { id: 1801, category: "戦後の欧州", question: "1975年第一回先進国首脳会議（G7サミット）に参加した国をすべて答えよ。", answer: "米、英、仏、カナダ、西ドイツ、伊、日本" },
+  { id: 1802, category: "戦後の欧州", question: "EC（欧州共同体）からEU（欧州連合）への改組を実現した条約の名前は？", answer: "マーストリヒト条約" },
+  { id: 1803, category: "戦後の欧州", question: "EU圏内の人の移動の自由化を実現した協定の名前は？", answer: "シェンゲン協定" },
+  { id: 1804, category: "戦後の欧州", question: "EU本部がある国と都市の名前は？", answer: "ベルギー・ブリュッセル" },
+  { id: 1805, category: "戦後のアメリカ", question: "公民権運動の指導者で、ノーベル平和賞を受賞した黒人の牧師は？", answer: "キング牧師" },
+  { id: 1806, category: "戦後のアメリカ", question: "アメリカを建国したとされる人々（ホワイト・アングロサクソン・プロテスタント）の略称は？", answer: "WASP（ワスプ）" },
+  { id: 1807, category: "戦後のアメリカ", question: "1970年代以降急増し、黒人を抜いて2位になったヒスパニック系の人種集団の名称は？", answer: "ラティーノ" },
+  { id: 1808, category: "戦後のアメリカ", question: "2008年にアメリカから始まり、世界を巻き込んだ金融危機をもたらした事件は？", answer: "リーマン＝ショック" },
+  { id: 1809, category: "戦後のアメリカ", question: "2009年に当選した、アメリカ初の黒人大統領の名前は？", answer: "オバマ" },
+  { id: 1810, category: "戦後のアメリカ", question: "トランプ大統領（第45代）が所属する政党の名前は？", answer: "共和党" },
+  { id: 1811, category: "戦後のアメリカ", question: "バイデン大統領（第46代）が所属する政党の名前は？", answer: "民主党" },
+  { id: 1901, category: "戦後の日本", question: "1951年、日本が主権を回復した条約の名前は？", answer: "サンフランシスコ平和条約" },
+  { id: 1902, category: "戦後の日本", question: "「所得倍増」をスローガンとして、経済成長政策を進めた首相の名前は？", answer: "池田勇人" },
+  { id: 1903, category: "戦後の日本", question: "1970年に成立した、沖縄の日本復帰を定めた協定の名前は？", answer: "沖縄返還協定" },
+  { id: 1904, category: "戦後の日本", question: "ヒトとモノの地方分散への移行を狙った「列島改造」構想を掲げた首相は？", answer: "田中角栄" },
+];
+
+// --- ユーティリティ関数 ---
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+
+const getUniqueCategories = (data: typeof rawData) => {
+  const order = [
+    "ナチスの台頭", "ナチスの内政", "ドイツ情勢", "ヒトラーの経歴", "ヒトラーの拡張",
+    "満州事変", "日中戦争前夜", "日中戦争", "戦時体制",
+    "第二次世界大戦", "欧州戦線の終結", "独ソ戦",
+    "太平洋戦争", "太平洋戦争（地図・まとめ）",
+    "戦時下の日本", "敗戦への道", "戦争の被害・戦後",
+    "冷戦の終結", "戦後の欧州", "戦後のアメリカ", "戦後の日本"
+  ];
+  const uniqueCats = Array.from(new Set(data.map(item => item.category)));
+  return uniqueCats.sort((a, b) => {
+    const indexA = order.indexOf(a);
+    const indexB = order.indexOf(b);
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+    return 0;
+  });
+};
+
+const STORAGE_KEY = 'history-study-mastered-ids';
+
+const loadMasteredIds = (): number[] => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load saved progress', e);
+  }
+  return [];
+};
+
+export default function HistoryStudyApp() {
+  const [questions, setQuestions] = useState(rawData);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [masteredIds, setMasteredIds] = useState<number[]>(loadMasteredIds);
+  const [filterCategory, setFilterCategory] = useState<string>('All');
+  const [showList, setShowList] = useState(false);
+  const [reviewMode, setReviewMode] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(masteredIds));
+  }, [masteredIds]);
+
+  const filteredQuestions = useMemo(() => {
+    let filtered = questions;
+    if (filterCategory !== 'All') {
+      filtered = filtered.filter(q => q.category === filterCategory);
+    }
+    if (reviewMode) {
+      filtered = filtered.filter(q => !masteredIds.includes(q.id));
+    }
+    return filtered;
+  }, [questions, filterCategory, reviewMode, masteredIds]);
+
+  const currentQuestion = filteredQuestions[currentIndex];
+  const progressPercentage = Math.round((masteredIds.length / rawData.length) * 100);
+  const remainingCount = rawData.length - masteredIds.length;
+
+  const handleNext = () => {
+    setIsFlipped(false);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % filteredQuestions.length);
+    }, 150);
+  };
+
+  const handlePrev = () => {
+    setIsFlipped(false);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev - 1 + filteredQuestions.length) % filteredQuestions.length);
+    }, 150);
+  };
+
+  const toggleMastered = (id: number) => {
+    setMasteredIds(prev => prev.includes(id) ? prev.filter(mid => mid !== id) : [...prev, id]);
+  };
+
+  const handleCategoryChange = (cat: string) => {
+    setFilterCategory(cat);
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    setShowList(false);
+  };
+
+  const shuffleQuestions = () => {
+    setQuestions(shuffleArray([...questions]));
+    setCurrentIndex(0);
+    setIsFlipped(false);
+  };
+
+  // 完了画面
+  if (!currentQuestion && filteredQuestions.length === 0) {
+    return (
+      <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
+        <div className="text-center p-6 bg-zinc-800 rounded-xl border border-zinc-700 max-w-sm w-full">
+          <div className="w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trophy className="w-7 h-7 text-white" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">
+            {reviewMode ? 'Complete!' : 'No Questions'}
+          </h2>
+          <p className="text-sm text-zinc-400 mb-5">
+            {reviewMode ? '全ての問題を覚えました！' : 'このカテゴリの問題はありません。'}
+          </p>
+          <button
+            onClick={() => { setFilterCategory('All'); setReviewMode(false); }}
+            className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
+          >
+            全問題に戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-zinc-900">
+      {/* ヘッダー */}
+      <header className="bg-zinc-800/80 backdrop-blur border-b border-zinc-700/50 sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-3 py-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-indigo-500 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-4 h-4 text-white" />
+              </div>
+              <h1 className="font-semibold text-sm text-white">歴史テスト対策</h1>
+            </div>
+
+            {/* 進捗 */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-400 hidden sm:inline">{masteredIds.length}/{rawData.length}</span>
+              <div className="w-20 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 transition-all duration-300"
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
+              <span className="text-xs font-medium text-zinc-300">{progressPercentage}%</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* コントロールバー */}
+      <div className="bg-zinc-800/50 border-b border-zinc-700/30">
+        <div className="max-w-5xl mx-auto px-3 py-1.5">
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {/* モード切替 */}
+            <div className="flex bg-zinc-700/50 rounded-lg p-0.5">
+              <button
+                onClick={() => setShowList(false)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${!showList ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+              >
+                <Layers size={12} />
+                <span className="hidden sm:inline">カード</span>
+              </button>
+              <button
+                onClick={() => setShowList(true)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${showList ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+              >
+                <List size={12} />
+                <span className="hidden sm:inline">一覧</span>
+              </button>
+            </div>
+
+            <button
+              onClick={shuffleQuestions}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-400 text-xs font-medium hover:bg-zinc-700 hover:text-white transition-colors"
+            >
+              <RotateCcw size={12} />
+              <span className="hidden sm:inline">シャッフル</span>
+            </button>
+
+            <button
+              onClick={() => { setReviewMode(!reviewMode); setCurrentIndex(0); setIsFlipped(false); }}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                reviewMode ? 'bg-amber-500/20 text-amber-400' : 'bg-zinc-700/50 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+              }`}
+            >
+              {reviewMode ? `復習中 (${remainingCount})` : '復習'}
+            </button>
+
+            <button
+              onClick={() => { if (confirm('学習記録をリセットしますか？')) setMasteredIds([]); }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-400 text-xs font-medium hover:bg-red-500/20 hover:text-red-400 transition-colors"
+            >
+              <RefreshCw size={12} />
+            </button>
+
+            <select
+              value={filterCategory}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+              className="ml-auto px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-300 text-xs font-medium border-none outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+            >
+              <option value="All" className="bg-zinc-800">全範囲 ({rawData.length})</option>
+              {getUniqueCategories(rawData).map(cat => (
+                <option key={cat} value={cat} className="bg-zinc-800">{cat}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* メインエリア */}
+      <main className="max-w-5xl mx-auto px-3 py-4">
+        {showList ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+            {filteredQuestions.map((q) => (
+              <div
+                key={q.id}
+                className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${
+                  masteredIds.includes(q.id) ? 'border-emerald-500/40' : 'border-zinc-700/50 hover:border-zinc-600'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-[10px] font-medium text-zinc-500 bg-zinc-700/50 px-1.5 py-0.5 rounded">
+                    {q.category}
+                  </span>
+                  <button onClick={() => toggleMastered(q.id)} className="p-0.5">
+                    {masteredIds.includes(q.id) ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border border-zinc-600" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-zinc-300 mb-2.5 leading-relaxed">{q.question}</p>
+                <div className="bg-indigo-500/10 px-2.5 py-1.5 rounded border border-indigo-500/20">
+                  <span className="text-indigo-300 font-medium text-xs">{q.answer}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center pt-4 md:pt-8">
+            <span className="text-zinc-500 text-[10px] font-medium tracking-wider mb-3">
+              {currentIndex + 1} / {filteredQuestions.length}
+            </span>
+
+            <div
+              className="w-full max-w-lg cursor-pointer"
+              onClick={() => setIsFlipped(!isFlipped)}
+            >
+              <div className="bg-zinc-800 rounded-xl border border-zinc-700/50 overflow-hidden">
+                <div className="px-4 py-2.5 border-b border-zinc-700/50 flex justify-between items-center">
+                  <span className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-500">
+                    {currentQuestion.category.includes('地図') && <MapPin size={10} className="text-rose-400"/>}
+                    {currentQuestion.category.includes('世界') && <Globe size={10} className="text-sky-400"/>}
+                    {currentQuestion.category}
+                  </span>
+                  {masteredIds.includes(currentQuestion.id) && (
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-400">
+                      <CheckCircle size={10} /> 習得済み
+                    </span>
+                  )}
+                </div>
+
+                <div className="p-5 min-h-[200px] flex flex-col justify-center">
+                  <p className="text-sm md:text-base text-zinc-200 text-center leading-relaxed">
+                    {currentQuestion.question.split('（　？　）').map((part, i, arr) => (
+                      <React.Fragment key={i}>
+                        {part}
+                        {i < arr.length - 1 && (
+                          <span className={`inline-block mx-0.5 px-2 py-0.5 rounded font-semibold transition-all ${
+                            isFlipped
+                              ? 'text-indigo-300 bg-indigo-500/20'
+                              : 'text-transparent bg-zinc-700 min-w-[3em]'
+                          }`}>
+                            {isFlipped ? currentQuestion.answer : '???'}
+                          </span>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </p>
+
+                  {!currentQuestion.question.includes('（　？　）') && (
+                    <div className={`mt-5 w-full p-3 rounded-lg text-center transition-all ${
+                      isFlipped ? 'bg-indigo-500/10 border border-indigo-500/20' : 'bg-zinc-700/30'
+                    }`}>
+                      <span className="text-[10px] text-zinc-500 block mb-1">
+                        {isFlipped ? 'ANSWER' : 'TAP TO REVEAL'}
+                      </span>
+                      <span className={`text-base md:text-lg font-semibold ${isFlipped ? 'text-indigo-300' : 'text-transparent'}`}>
+                        {currentQuestion.answer}
+                      </span>
+                    </div>
+                  )}
+
+                  {!isFlipped && (
+                    <p className="text-center text-zinc-600 text-[10px] mt-4">タップして答えを表示</p>
+                  )}
+                </div>
+
+                {isFlipped && (
+                  <div className="px-4 py-3 border-t border-zinc-700/50 flex justify-center">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleMastered(currentQuestion.id); }}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        masteredIds.includes(currentQuestion.id)
+                          ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600'
+                          : 'bg-emerald-500 text-white hover:bg-emerald-600'
+                      }`}
+                    >
+                      <CheckCircle size={14} />
+                      {masteredIds.includes(currentQuestion.id) ? '未習得に戻す' : '覚えた！'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 mt-5">
+              <button
+                onClick={handlePrev}
+                className="p-2 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(5, filteredQuestions.length) }, (_, i) => {
+                  const startIdx = Math.max(0, Math.min(currentIndex - 2, filteredQuestions.length - 5));
+                  const idx = startIdx + i;
+                  return (
+                    <div
+                      key={idx}
+                      className={`h-1 rounded-full transition-all ${idx === currentIndex ? 'bg-indigo-400 w-4' : 'bg-zinc-700 w-1'}`}
+                    />
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={handleNext}
+                className="p-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
