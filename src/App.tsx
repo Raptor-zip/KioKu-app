@@ -131,6 +131,7 @@ export default function KiokuApp() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isExiting, setIsExiting] = useState(false);
   const [isInitialized, setIsInitialized] = useState(!!initialSubject);
 
   const rawData = selectedSubject === 'history' ? historyData : ethicsData;
@@ -216,17 +217,13 @@ export default function KiokuApp() {
   const handleNext = () => {
     if (filteredQuestions.length === 0) return;
     setIsFlipped(false);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % filteredQuestions.length);
-    }, 150);
+    setCurrentIndex((prev) => (prev + 1) % filteredQuestions.length);
   };
 
   const handlePrev = () => {
     if (filteredQuestions.length === 0) return;
     setIsFlipped(false);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + filteredQuestions.length) % filteredQuestions.length);
-    }, 150);
+    setCurrentIndex((prev) => (prev - 1 + filteredQuestions.length) % filteredQuestions.length);
   };
 
   // 一覧用: ステータスを循環切り替え (未学習 → わからない → 習得済み → 未学習)
@@ -251,15 +248,14 @@ export default function KiokuApp() {
     if (!currentQuestion) return;
 
     const doMark = () => {
-      // 習得済みに追加、わからないから削除
       if (!masteredIds.includes(currentQuestion.id)) {
         setMasteredIds(prev => [...prev, currentQuestion.id]);
       }
       setFailedIds(prev => prev.filter(fid => fid !== currentQuestion.id));
-      handleNext();
+      setIsFlipped(false);
+      setCurrentIndex((prev) => (prev + 1) % filteredQuestions.length);
     };
 
-    // 答えが表示されていない場合、先に表示してから次へ
     if (!isFlipped) {
       setIsFlipped(true);
       setTimeout(doMark, 600);
@@ -272,15 +268,14 @@ export default function KiokuApp() {
     if (!currentQuestion) return;
 
     const doMark = () => {
-      // わからないに追加、習得済みから削除
       if (!failedIds.includes(currentQuestion.id)) {
         setFailedIds(prev => [...prev, currentQuestion.id]);
       }
       setMasteredIds(prev => prev.filter(mid => mid !== currentQuestion.id));
-      handleNext();
+      setIsFlipped(false);
+      setCurrentIndex((prev) => (prev + 1) % filteredQuestions.length);
     };
 
-    // 答えが表示されていない場合、先に表示してから次へ
     if (!isFlipped) {
       setIsFlipped(true);
       setTimeout(doMark, 600);
@@ -312,14 +307,35 @@ export default function KiokuApp() {
 
   const handleTouchEnd = () => {
     if (touchStart !== null && Math.abs(swipeOffset) > 60) {
-      if (swipeOffset > 0) {
-        markAsLearned();
-      } else {
-        markAsFailed();
-      }
+      const direction = swipeOffset > 0 ? 'right' : 'left';
+      // カードを画面外にアニメーション
+      setSwipeOffset(direction === 'right' ? 300 : -300);
+      setIsExiting(true);
+      setTouchStart(null);
+
+      setTimeout(() => {
+        if (currentQuestion) {
+          if (direction === 'right') {
+            if (!masteredIds.includes(currentQuestion.id)) {
+              setMasteredIds(prev => [...prev, currentQuestion.id]);
+            }
+            setFailedIds(prev => prev.filter(fid => fid !== currentQuestion.id));
+          } else {
+            if (!failedIds.includes(currentQuestion.id)) {
+              setFailedIds(prev => [...prev, currentQuestion.id]);
+            }
+            setMasteredIds(prev => prev.filter(mid => mid !== currentQuestion.id));
+          }
+        }
+        setIsFlipped(false);
+        setCurrentIndex(prev => (prev + 1) % filteredQuestions.length);
+        setSwipeOffset(0);
+        setIsExiting(false);
+      }, 250);
+    } else {
+      setSwipeOffset(0);
+      setTouchStart(null);
     }
-    setTouchStart(null);
-    setSwipeOffset(0);
   };
 
   const handleCategoryChange = (cat: string) => {
@@ -550,14 +566,16 @@ export default function KiokuApp() {
             </div>
 
             <div
+              key={currentQuestion.id}
               className="w-full max-w-lg cursor-pointer select-none"
-              onClick={() => setIsFlipped(!isFlipped)}
+              onClick={() => !isExiting && setIsFlipped(!isFlipped)}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               style={{
                 transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)`,
-                transition: touchStart ? 'none' : 'transform 0.2s ease-out',
+                opacity: isExiting ? 0 : 1,
+                transition: touchStart ? 'none' : 'transform 0.25s ease-out, opacity 0.2s ease-out',
                 touchAction: 'pan-y'
               }}
             >
