@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BookOpen, CheckCircle, XCircle, Circle, RotateCcw, Trophy, ChevronRight, ChevronLeft, MapPin, Globe, RefreshCw, List, Layers, ArrowLeft, History, Brain } from 'lucide-react';
+import { BookOpen, CheckCircle, XCircle, Circle, RotateCcw, Trophy, ChevronRight, ChevronLeft, MapPin, Globe, RefreshCw, List, Layers, ArrowLeft, History, Brain, Github } from 'lucide-react';
 import { subjects, type SubjectId } from './data';
 
 // --- 教科タイプ ---
@@ -107,6 +107,16 @@ function SubjectSelector({ onSelect }: { onSelect: (subject: Subject) => void })
             </div>
           </button>
         </div>
+
+        <a
+          href="https://github.com/Raptor-zip/KioKu-app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 text-zinc-600 hover:text-zinc-400 transition-colors mt-8 text-xs"
+        >
+          <Github size={14} />
+          <span>GitHub</span>
+        </a>
       </div>
     </div>
   );
