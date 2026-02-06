@@ -301,6 +301,7 @@ export default function KiokuApp() {
     // 水平方向に動き始めたらブラウザのデフォルト動作を防ぐ
     if (Math.abs(diff) > 10) {
       e.preventDefault();
+      setIsFlipped(true);
     }
     setSwipeOffset(Math.max(-100, Math.min(100, diff)));
   };
