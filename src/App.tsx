@@ -66,43 +66,43 @@ type StatusFilter = 'all' | 'unseen' | 'failed' | 'learned';
 // --- 教科選択画面 ---
 function SubjectSelector({ onSelect }: { onSelect: (subject: Subject) => void }) {
   return (
-    <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <BookOpen className="w-8 h-8 text-white" />
+    <div className="h-dvh bg-zinc-900 flex items-center justify-center p-6">
+      <div className="max-w-sm w-full">
+        <div className="text-center mb-10">
+          <div className="w-20 h-20 bg-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <BookOpen className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Kioku</h1>
-          <p className="text-zinc-400 text-sm">学習する教科を選択してください</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Kioku</h1>
+          <p className="text-zinc-400 text-base">学習する教科を選択してください</p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <button
             onClick={() => onSelect('history')}
-            className="w-full p-5 bg-zinc-800 rounded-xl border border-zinc-700 hover:border-amber-500/50 hover:bg-zinc-800/80 transition-all group"
+            className="w-full p-6 bg-zinc-800 rounded-2xl border border-zinc-700 hover:border-amber-500/50 active:scale-[0.98] transition-all group"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
-                <History className="w-6 h-6 text-amber-400" />
+              <div className="w-14 h-14 bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
+                <History className="w-7 h-7 text-amber-400" />
               </div>
               <div className="text-left">
-                <h2 className="text-lg font-semibold text-white">歴史</h2>
-                <p className="text-sm text-zinc-400">{historyData.length} 問</p>
+                <h2 className="text-xl font-semibold text-white">歴史</h2>
+                <p className="text-base text-zinc-400">{historyData.length} 問</p>
               </div>
             </div>
           </button>
 
           <button
             onClick={() => onSelect('ethics')}
-            className="w-full p-5 bg-zinc-800 rounded-xl border border-zinc-700 hover:border-purple-500/50 hover:bg-zinc-800/80 transition-all group"
+            className="w-full p-6 bg-zinc-800 rounded-2xl border border-zinc-700 hover:border-purple-500/50 active:scale-[0.98] transition-all group"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
-                <Brain className="w-6 h-6 text-purple-400" />
+              <div className="w-14 h-14 bg-purple-500/20 rounded-xl flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
+                <Brain className="w-7 h-7 text-purple-400" />
               </div>
               <div className="text-left">
-                <h2 className="text-lg font-semibold text-white">倫理</h2>
-                <p className="text-sm text-zinc-400">{ethicsData.length} 問</p>
+                <h2 className="text-xl font-semibold text-white">倫理</h2>
+                <p className="text-base text-zinc-400">{ethicsData.length} 問</p>
               </div>
             </div>
           </button>
@@ -354,65 +354,65 @@ export default function KiokuApp() {
 
 
   return (
-    <div className="min-h-screen bg-zinc-900">
+    <div className="h-dvh flex flex-col bg-zinc-900 overflow-hidden">
       {/* ヘッダー */}
-      <header className="bg-zinc-800/80 backdrop-blur border-b border-zinc-700/50 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-3 py-2">
+      <header className="shrink-0 bg-zinc-800/80 backdrop-blur border-b border-zinc-700/50 z-50">
+        <div className="px-4 py-2.5">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={handleChangeSubject}
-                className="w-7 h-7 bg-zinc-700 rounded-lg flex items-center justify-center hover:bg-zinc-600 transition-colors"
+                className="w-8 h-8 bg-zinc-700 rounded-lg flex items-center justify-center hover:bg-zinc-600 active:scale-95 transition-all"
                 title="教科を変更"
               >
                 <ArrowLeft className="w-4 h-4 text-zinc-300" />
               </button>
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'}`}>
                 {selectedSubject === 'history' ? (
                   <History className="w-4 h-4 text-white" />
                 ) : (
                   <Brain className="w-4 h-4 text-white" />
                 )}
               </div>
-              <h1 className="font-semibold text-sm text-white">
+              <h1 className="font-semibold text-base text-white">
                 {selectedSubject === 'history' ? '歴史' : '倫理'}
               </h1>
             </div>
 
             {/* 進捗 */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-400 hidden sm:inline">{masteredIds.length}/{rawData.length}</span>
-              <div className="w-20 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+            <div className="flex items-center gap-2.5">
+              <span className="text-sm text-zinc-400">{masteredIds.length}/{rawData.length}</span>
+              <div className="w-24 h-2 bg-zinc-700 rounded-full overflow-hidden">
                 <div
                   className={`h-full transition-all duration-300 ${selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'}`}
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
-              <span className="text-xs font-medium text-zinc-300">{progressPercentage}%</span>
+              <span className="text-sm font-medium text-zinc-300">{progressPercentage}%</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* コントロールバー */}
-      <div className="bg-zinc-800/50 border-b border-zinc-700/30">
-        <div className="max-w-5xl mx-auto px-3 py-1.5">
-          <div className="flex flex-wrap gap-1.5 items-center">
+      <div className="shrink-0 bg-zinc-800/50 border-b border-zinc-700/30">
+        <div className="px-4 py-2 overflow-x-auto no-scrollbar">
+          <div className="flex gap-2 items-center min-w-max">
             {/* モード切替 */}
             <div className="flex bg-zinc-700/50 rounded-lg p-0.5">
               <button
                 onClick={() => setShowList(false)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${!showList ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${!showList ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'}`}
               >
-                <Layers size={12} />
-                <span className="hidden sm:inline">カード</span>
+                <Layers size={14} />
+                カード
               </button>
               <button
                 onClick={() => setShowList(true)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${showList ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${showList ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'}`}
               >
-                <List size={12} />
-                <span className="hidden sm:inline">一覧</span>
+                <List size={14} />
+                一覧
               </button>
             </div>
 
@@ -420,25 +420,25 @@ export default function KiokuApp() {
             <div className="flex bg-zinc-700/50 rounded-lg p-0.5">
               <button
                 onClick={() => { setStatusFilter('all'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'all' ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+                className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${statusFilter === 'all' ? 'bg-zinc-600 text-white' : 'text-zinc-400 hover:text-white'}`}
               >
                 全て
               </button>
               <button
                 onClick={() => { setStatusFilter('unseen'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'unseen' ? 'bg-zinc-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+                className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${statusFilter === 'unseen' ? 'bg-zinc-500 text-white' : 'text-zinc-400 hover:text-white'}`}
               >
                 未学習 ({unseenCount})
               </button>
               <button
                 onClick={() => { setStatusFilter('failed'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'failed' ? 'bg-rose-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+                className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${statusFilter === 'failed' ? 'bg-rose-500 text-white' : 'text-zinc-400 hover:text-white'}`}
               >
                 復習 ({failedCount})
               </button>
               <button
                 onClick={() => { setStatusFilter('learned'); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === 'learned' ? 'bg-emerald-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+                className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${statusFilter === 'learned' ? 'bg-emerald-500 text-white' : 'text-zinc-400 hover:text-white'}`}
               >
                 習得 ({learnedCount})
               </button>
@@ -446,23 +446,23 @@ export default function KiokuApp() {
 
             <button
               onClick={shuffleQuestions}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-400 text-xs font-medium hover:bg-zinc-700 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-700/50 text-zinc-400 text-sm font-medium hover:bg-zinc-700 hover:text-white active:scale-95 transition-all"
             >
-              <RotateCcw size={12} />
-              <span className="hidden sm:inline">シャッフル</span>
+              <RotateCcw size={14} />
+              シャッフル
             </button>
 
             <button
               onClick={() => { if (confirm('学習記録をリセットしますか？')) { setMasteredIds([]); setFailedIds([]); } }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-400 text-xs font-medium hover:bg-red-500/20 hover:text-red-400 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-700/50 text-zinc-400 text-sm font-medium hover:bg-red-500/20 hover:text-red-400 active:scale-95 transition-all"
             >
-              <RefreshCw size={12} />
+              <RefreshCw size={14} />
             </button>
 
             <select
               value={filterCategory}
               onChange={(e) => handleCategoryChange(e.target.value)}
-              className={`ml-auto px-2.5 py-1 rounded-lg bg-zinc-700/50 text-zinc-300 text-xs font-medium border-none outline-none focus:ring-1 cursor-pointer ${selectedSubject === 'history' ? 'focus:ring-amber-500' : 'focus:ring-purple-500'}`}
+              className={`ml-auto px-3 py-1.5 rounded-lg bg-zinc-700/50 text-zinc-300 text-sm font-medium border-none outline-none focus:ring-1 cursor-pointer ${selectedSubject === 'history' ? 'focus:ring-amber-500' : 'focus:ring-purple-500'}`}
             >
               <option value="All" className="bg-zinc-800">全範囲 ({rawData.length})</option>
               {getUniqueCategories(rawData, selectedSubject).map(cat => (
@@ -474,36 +474,36 @@ export default function KiokuApp() {
       </div>
 
       {/* メインエリア */}
-      <main className="max-w-5xl mx-auto px-3 py-4">
+      <main className="flex-1 flex flex-col min-h-0">
         {(filteredQuestions.length === 0 || !currentQuestion) ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center p-6 bg-zinc-800 rounded-xl border border-zinc-700 max-w-sm w-full">
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center p-8 bg-zinc-800 rounded-2xl border border-zinc-700 max-w-sm w-full">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 ${selectedSubject === 'history' ? 'bg-amber-500' : 'bg-purple-500'
                 }`}>
-                <Trophy className="w-7 h-7 text-white" />
+                <Trophy className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">
+              <h2 className="text-2xl font-bold text-white mb-3">
                 {statusFilter === 'unseen' ? 'Complete!' :
                   statusFilter === 'failed' ? 'Great!' :
                     statusFilter === 'learned' ? 'No Questions' :
                       'No Questions'}
               </h2>
-              <p className="text-sm text-zinc-400 mb-5">
+              <p className="text-base text-zinc-400 mb-6">
                 {statusFilter === 'unseen' ? '全ての問題を学習しました！' :
                   statusFilter === 'failed' ? '復習問題を全てクリアしました！' :
                     statusFilter === 'learned' ? '習得済みの問題はまだありません。' :
                       'このカテゴリの問題はありません。'}
               </p>
-              <div className="flex gap-2 justify-center">
+              <div className="flex gap-3 justify-center">
                 <button
                   onClick={() => { setFilterCategory('All'); setStatusFilter('all'); }}
-                  className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
+                  className="px-5 py-2.5 bg-zinc-700 text-white rounded-xl text-base font-medium hover:bg-zinc-600 active:scale-95 transition-all"
                 >
                   全問題に戻る
                 </button>
                 <button
                   onClick={handleChangeSubject}
-                  className="px-5 py-2 bg-zinc-700 text-white rounded-lg text-sm font-medium hover:bg-zinc-600 transition-colors"
+                  className="px-5 py-2.5 bg-zinc-700 text-white rounded-xl text-base font-medium hover:bg-zinc-600 active:scale-95 transition-all"
                 >
                   教科変更
                 </button>
@@ -511,178 +511,185 @@ export default function KiokuApp() {
             </div>
           </div>
         ) : showList ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-            {filteredQuestions.map((q) => {
-              const isMastered = masteredIds.includes(q.id);
-              const isFailed = failedIds.includes(q.id);
-              return (
-                <div
-                  key={q.id}
-                  className={`bg-zinc-800 rounded-lg p-3 border transition-colors ${isMastered
-                      ? 'border-emerald-500/40'
-                      : isFailed
-                        ? 'border-rose-500/40'
-                        : 'border-zinc-700/50 hover:border-zinc-600'
-                    }`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-[10px] font-medium text-zinc-500 bg-zinc-700/50 px-1.5 py-0.5 rounded">
-                      {q.category}
-                    </span>
-                    <button onClick={() => cycleStatus(q.id)} className="p-0.5" title="クリックでステータス変更">
-                      {isMastered ? (
-                        <CheckCircle className="w-4 h-4 text-emerald-400" />
-                      ) : isFailed ? (
-                        <XCircle className="w-4 h-4 text-rose-400" />
-                      ) : (
-                        <Circle className="w-4 h-4 text-zinc-600" />
-                      )}
-                    </button>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {filteredQuestions.map((q) => {
+                const isMastered = masteredIds.includes(q.id);
+                const isFailed = failedIds.includes(q.id);
+                return (
+                  <div
+                    key={q.id}
+                    className={`bg-zinc-800 rounded-xl p-4 border transition-colors ${isMastered
+                        ? 'border-emerald-500/40'
+                        : isFailed
+                          ? 'border-rose-500/40'
+                          : 'border-zinc-700/50 hover:border-zinc-600'
+                      }`}
+                  >
+                    <div className="flex justify-between items-start mb-2.5">
+                      <span className="text-xs font-medium text-zinc-500 bg-zinc-700/50 px-2 py-0.5 rounded">
+                        {q.category}
+                      </span>
+                      <button onClick={() => cycleStatus(q.id)} className="p-1" title="クリックでステータス変更">
+                        {isMastered ? (
+                          <CheckCircle className="w-5 h-5 text-emerald-400" />
+                        ) : isFailed ? (
+                          <XCircle className="w-5 h-5 text-rose-400" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-zinc-600" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-sm text-zinc-300 mb-3 leading-relaxed">{q.question}</p>
+                    <div className={`px-3 py-2 rounded-lg border ${isMastered
+                        ? 'bg-emerald-500/10 border-emerald-500/20'
+                        : isFailed
+                          ? 'bg-rose-500/10 border-rose-500/20'
+                          : 'bg-zinc-700/30 border-zinc-600/30'
+                      }`}>
+                      <span className={`font-medium text-sm ${isMastered ? 'text-emerald-300' : isFailed ? 'text-rose-300' : 'text-zinc-300'
+                        }`}>{q.answer}</span>
+                    </div>
                   </div>
-                  <p className="text-xs text-zinc-300 mb-2.5 leading-relaxed">{q.question}</p>
-                  <div className={`px-2.5 py-1.5 rounded border ${isMastered
-                      ? 'bg-emerald-500/10 border-emerald-500/20'
-                      : isFailed
-                        ? 'bg-rose-500/10 border-rose-500/20'
-                        : 'bg-zinc-700/30 border-zinc-600/30'
-                    }`}>
-                    <span className={`font-medium text-xs ${isMastered ? 'text-emerald-300' : isFailed ? 'text-rose-300' : 'text-zinc-300'
-                      }`}>{q.answer}</span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center pt-4 md:pt-8">
-            <span className="text-zinc-500 text-[10px] font-medium tracking-wider mb-3">
-              {currentIndex + 1} / {filteredQuestions.length}
-            </span>
+          <div className="flex-1 flex flex-col min-h-0">
+            {/* カードエリア - 中央に配置 */}
+            <div className="flex-1 flex flex-col items-center justify-center px-5">
+              <span className="text-zinc-500 text-xs font-medium tracking-wider mb-3">
+                {currentIndex + 1} / {filteredQuestions.length}
+              </span>
 
-            {/* スワイプヒント */}
-            <div className="flex justify-between w-full max-w-lg px-2 mb-2">
-              <span className={`text-[10px] transition-opacity ${swipeOffset < -20 ? 'text-rose-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>← わからない</span>
-              <span className={`text-[10px] transition-opacity ${swipeOffset > 20 ? 'text-emerald-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>わかった →</span>
-            </div>
+              {/* スワイプヒント */}
+              <div className="flex justify-between w-full max-w-2xl px-2 mb-2">
+                <span className={`text-xs transition-opacity ${swipeOffset < -20 ? 'text-rose-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>← わからない</span>
+                <span className={`text-xs transition-opacity ${swipeOffset > 20 ? 'text-emerald-400 opacity-100' : 'text-zinc-600 opacity-50'}`}>わかった →</span>
+              </div>
 
-            <div
-              key={currentQuestion.id}
-              className="w-full max-w-lg cursor-pointer select-none"
-              onClick={() => !isExiting && setIsFlipped(!isFlipped)}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              style={{
-                transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)`,
-                opacity: isExiting ? 0 : 1,
-                transition: touchStart ? 'none' : 'transform 0.25s ease-out, opacity 0.2s ease-out',
-                touchAction: 'pan-y'
-              }}
-            >
-              <div className={`bg-zinc-800 rounded-xl border overflow-hidden transition-colors ${swipeOffset > 30 ? 'border-emerald-500/50' : swipeOffset < -30 ? 'border-amber-500/50' : 'border-zinc-700/50'
-                }`}>
-                <div className="px-4 py-2.5 border-b border-zinc-700/50 flex justify-between items-center">
-                  <span className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-500">
-                    {currentQuestion.category.includes('地図') && <MapPin size={10} className="text-rose-400" />}
-                    {currentQuestion.category.includes('世界') && <Globe size={10} className="text-sky-400" />}
-                    {currentQuestion.category}
-                  </span>
-                  {masteredIds.includes(currentQuestion.id) ? (
-                    <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-400">
-                      <CheckCircle size={10} /> 習得済み
+              <div
+                key={currentQuestion.id}
+                className="w-full max-w-2xl cursor-pointer select-none"
+                onClick={() => !isExiting && setIsFlipped(!isFlipped)}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                style={{
+                  transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)`,
+                  opacity: isExiting ? 0 : 1,
+                  transition: touchStart ? 'none' : 'transform 0.25s ease-out, opacity 0.2s ease-out',
+                  touchAction: 'pan-y'
+                }}
+              >
+                <div className={`bg-zinc-800 rounded-2xl border overflow-hidden transition-colors ${swipeOffset > 30 ? 'border-emerald-500/50' : swipeOffset < -30 ? 'border-amber-500/50' : 'border-zinc-700/50'
+                  }`}>
+                  <div className="px-5 py-3 border-b border-zinc-700/50 flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+                      {currentQuestion.category.includes('地図') && <MapPin size={12} className="text-rose-400" />}
+                      {currentQuestion.category.includes('世界') && <Globe size={12} className="text-sky-400" />}
+                      {currentQuestion.category}
                     </span>
-                  ) : failedIds.includes(currentQuestion.id) ? (
-                    <span className="flex items-center gap-1 text-[10px] font-medium text-rose-400">
-                      <XCircle size={10} /> 復習
-                    </span>
-                  ) : null}
-                </div>
-
-                <div className="p-5 min-h-[180px] flex flex-col justify-center">
-                  <p className="text-sm md:text-base text-zinc-200 text-center leading-relaxed">
-                    {currentQuestion.question.split('（　？　）').map((part, i, arr) => (
-                      <React.Fragment key={i}>
-                        {part}
-                        {i < arr.length - 1 && (
-                          <span className={`inline-block mx-0.5 px-2 py-0.5 rounded font-semibold transition-all ${isFlipped
-                            ? 'text-indigo-300 bg-indigo-500/20'
-                            : 'text-transparent bg-zinc-700 min-w-[3em]'
-                            }`}>
-                            {isFlipped ? currentQuestion.answer : '???'}
-                          </span>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </p>
-
-                  {!currentQuestion.question.includes('（　？　）') && (
-                    <div className={`mt-4 w-full p-3 rounded-lg text-center transition-all ${isFlipped ? 'bg-indigo-500/10 border border-indigo-500/20' : 'bg-zinc-700/30'
-                      }`}>
-                      <span className="text-[10px] text-zinc-500 block mb-1">
-                        {isFlipped ? 'ANSWER' : 'TAP TO REVEAL'}
+                    {masteredIds.includes(currentQuestion.id) ? (
+                      <span className="flex items-center gap-1 text-xs font-medium text-emerald-400">
+                        <CheckCircle size={12} /> 習得済み
                       </span>
-                      <span className={`text-base md:text-lg font-semibold ${isFlipped ? 'text-indigo-300' : 'text-transparent'}`}>
-                        {currentQuestion.answer}
+                    ) : failedIds.includes(currentQuestion.id) ? (
+                      <span className="flex items-center gap-1 text-xs font-medium text-rose-400">
+                        <XCircle size={12} /> 復習
                       </span>
-                    </div>
-                  )}
+                    ) : null}
+                  </div>
 
-                  {!isFlipped && (
-                    <p className="text-center text-zinc-600 text-[10px] mt-3">タップして答えを表示</p>
-                  )}
+                  <div className="p-6 min-h-[220px] flex flex-col justify-center">
+                    <p className="text-base md:text-xl text-zinc-200 text-center leading-relaxed">
+                      {currentQuestion.question.split('（　？　）').map((part, i, arr) => (
+                        <React.Fragment key={i}>
+                          {part}
+                          {i < arr.length - 1 && (
+                            <span className={`inline-block mx-1 px-3 py-1 rounded-lg font-semibold transition-all text-base md:text-xl ${isFlipped
+                              ? 'text-indigo-300 bg-indigo-500/20'
+                              : 'text-transparent bg-zinc-700 min-w-[3em]'
+                              }`}>
+                              {isFlipped ? currentQuestion.answer : '???'}
+                            </span>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </p>
+
+                    {!currentQuestion.question.includes('（　？　）') && (
+                      <div className={`mt-5 w-full p-4 rounded-xl text-center transition-all ${isFlipped ? 'bg-indigo-500/10 border border-indigo-500/20' : 'bg-zinc-700/30'
+                        }`}>
+                        <span className="text-xs text-zinc-500 block mb-1.5">
+                          {isFlipped ? 'ANSWER' : 'TAP TO REVEAL'}
+                        </span>
+                        <span className={`text-lg md:text-2xl font-semibold ${isFlipped ? 'text-indigo-300' : 'text-transparent'}`}>
+                          {currentQuestion.answer}
+                        </span>
+                      </div>
+                    )}
+
+                    {!isFlipped && (
+                      <p className="text-center text-zinc-600 text-xs mt-4">タップして答えを表示</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* アクションボタン - 常に表示 */}
-            <div className="flex gap-3 mt-4 w-full max-w-lg">
-              <button
-                onClick={markAsFailed}
-                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-rose-400 text-xs font-medium hover:bg-zinc-700 transition-colors"
-              >
-                <ChevronLeft size={14} />
-                わからない
-              </button>
-              <button
-                onClick={markAsLearned}
-                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-500 transition-colors"
-              >
-                わかった
-                <ChevronRight size={14} />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-4 mt-5">
-              <button
-                onClick={handlePrev}
-                className="p-2 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
-              >
-                <ChevronLeft size={18} />
-              </button>
-
-              <div className="flex gap-1">
-                {Array.from({ length: Math.min(5, filteredQuestions.length) }, (_, i) => {
-                  const startIdx = Math.max(0, Math.min(currentIndex - 2, filteredQuestions.length - 5));
-                  const idx = startIdx + i;
-                  return (
-                    <div
-                      key={idx}
-                      className={`h-1 rounded-full transition-all ${idx === currentIndex
-                        ? (selectedSubject === 'history' ? 'bg-amber-400 w-4' : 'bg-purple-400 w-4')
-                        : 'bg-zinc-700 w-1'
-                        }`}
-                    />
-                  );
-                })}
+            {/* 下部コントロール */}
+            <div className="shrink-0 px-5 pt-3 space-y-3" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+              <div className="flex gap-3 w-full max-w-2xl mx-auto">
+                <button
+                  onClick={markAsFailed}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-zinc-800 border border-zinc-700 text-rose-400 text-sm font-medium hover:bg-zinc-700 active:scale-[0.98] transition-all"
+                >
+                  <ChevronLeft size={16} />
+                  わからない
+                </button>
+                <button
+                  onClick={markAsLearned}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 active:scale-[0.98] transition-all"
+                >
+                  わかった
+                  <ChevronRight size={16} />
+                </button>
               </div>
 
-              <button
-                onClick={handleNext}
-                className={`p-2 rounded-lg text-white transition-colors ${selectedSubject === 'history' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-purple-500 hover:bg-purple-600'
-                  }`}
-              >
-                <ChevronRight size={18} />
-              </button>
+              <div className="flex items-center justify-center gap-5">
+                <button
+                  onClick={handlePrev}
+                  className="p-2.5 rounded-xl bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 active:scale-95 transition-all"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+
+                <div className="flex gap-1.5">
+                  {Array.from({ length: Math.min(5, filteredQuestions.length) }, (_, i) => {
+                    const startIdx = Math.max(0, Math.min(currentIndex - 2, filteredQuestions.length - 5));
+                    const idx = startIdx + i;
+                    return (
+                      <div
+                        key={idx}
+                        className={`h-1.5 rounded-full transition-all ${idx === currentIndex
+                          ? (selectedSubject === 'history' ? 'bg-amber-400 w-5' : 'bg-purple-400 w-5')
+                          : 'bg-zinc-700 w-1.5'
+                          }`}
+                      />
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={handleNext}
+                  className={`p-2.5 rounded-xl text-white active:scale-95 transition-all ${selectedSubject === 'history' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-purple-500 hover:bg-purple-600'
+                    }`}
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
             </div>
           </div>
         )}

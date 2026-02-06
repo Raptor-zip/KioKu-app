@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
-/* Any custom styles can go here, but for now we follow the user's provided code style which relies on classes */
+html, body, #root {
+  height: 100%;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #18181b;
+}
+
+/* Hide scrollbar for control bar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
